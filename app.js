@@ -1,0 +1,38 @@
+require('dotenv').config()
+
+const express = require('express')
+const bodyParser = require('body-parser')
+const path = require('path')
+
+// eslint-disable-next-line no-unused-vars
+const {mongoose} = require('./db/mongoose')
+const {mailer} = require('./mail/mailer')
+const {router: userRouter} = require('./users/routes')
+const {router: wishRouter} = require('./wishes/routes')
+
+const app = express()
+
+app.use(bodyParser.json())
+app.use('/static', express.static(path.join(__dirname, 'public')))
+
+app.get('/', (req, res) => res.send(`${process.env.APP_NAME} API`))
+app.use('/api/users', userRouter)
+app.use('/api/wishes', wishRouter)
+
+app.listen(process.env.PORT, (err) => {
+  if (err) {
+    console.error('[express] ' + err.message)
+  } else {
+    console.info('[express] running at ' + process.env.PORT)
+  }
+})
+
+mailer.verify((err) => {
+  if (err) {
+    console.error('[express] ' + err.message)
+  } else {
+    console.info('[express] server is ready')
+  }
+})
+
+module.exports = app
