@@ -3,46 +3,30 @@ const router = express.Router()
 const pullAllBy = require('lodash/pullAllBy')
 const {User} = require('./model')
 const {authenticate} = require('./../middleware/authenticate')
-const socialAuth = require('./social')
+const {getGoogleUser, socialize, SOCIALIZATIONS} = require('./social')
+
+const createUserFlow = (user, res) => (
+  user
+    .save()
+    .then(() => user.requestVerification())
+    .then(() => user.authenticate())
+    .then(token => res.header('X-Authorization', token).send(user.toJSON()))
+)
 
 router.post('/', (req, res) => {
   const {email, password} = req.body
   const user = new User({email, password})
 
-  user
-    .save()
-    .then(user => user.authenticate())
-    .then(() => user.requestVerification())
-    .then(token => res.header('X-Authorization', token).send(user.toJSON()))
+  createUserFlow(user, res)
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
 router.post('/google', (req, res) => {
   const {token} = req.body
-  socialAuth.verifyGoogleAuth(token)
-    .then(payload => ({
-      email: payload['email'],
-      verified: payload['email_verified'],
-      password: token.slice(0, 16),
-      social: {
-        google: payload['sub']
-      }
-    }))
-    .then(userInfo => {
-      return User.findOne({email: userInfo.email})
-        .then(user => {
-          if (!user) return Promise.reject(new Error('User not found'))
 
-          user.social.google = userInfo.social.google
-          return user
-        })
-        .catch(() => new User(userInfo))
-    })
-    .then(user => user.save()
-      .then(user => user.authenticate())
-      .then(() => user.requestVerification())
-      .then(token => res.header('X-Authorization', token).send(user.toJSON()))
-    )
+  getGoogleUser(token)
+    .then(userInfo => socialize(userInfo, SOCIALIZATIONS.google))
+    .then(user => createUserFlow(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })
 

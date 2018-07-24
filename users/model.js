@@ -121,6 +121,8 @@ UserSchema.pre('save', function (next) {
 })
 
 UserSchema.methods.requestVerification = function () {
+  if (this.verified) return Promise.resolve()
+
   const access = 'email_verify'
   const token = jwt.sign({_id: this._id.toHexString(), access}, process.env.SECRET, {
     expiresIn: process.env.EMAIL_TOKEN_EXP
