@@ -3,7 +3,7 @@ const router = express.Router()
 const pullAllBy = require('lodash/pullAllBy')
 const {User} = require('./model')
 const {authenticate} = require('./../middleware/authenticate')
-const {getGoogleUser, socialize, SOCIALIZATIONS} = require('./social')
+const {getGoogleUser, getFacebookUser, socialize, SOCIALIZATIONS} = require('./social')
 
 const createUserFlow = (user, res) => (
   user
@@ -26,6 +26,15 @@ router.post('/google', (req, res) => {
 
   getGoogleUser(token)
     .then(userInfo => socialize(userInfo, SOCIALIZATIONS.google))
+    .then(user => createUserFlow(user, res))
+    .catch(error => res.send({status: 400, error: error.message}))
+})
+
+router.post('/facebook', (req, res) => {
+  const {accessToken: token} = req.body
+
+  getFacebookUser(token)
+    .then(userInfo => socialize(userInfo, SOCIALIZATIONS.facebook))
     .then(user => createUserFlow(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })
