@@ -26,6 +26,16 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  social: {
+    google: {
+      type: String,
+      default: null
+    },
+    facebook: {
+      type: String,
+      default: null
+    }
+  },
   tokens: [
     {
       access: {

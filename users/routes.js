@@ -3,6 +3,7 @@ const router = express.Router()
 const pullAllBy = require('lodash/pullAllBy')
 const {User} = require('./model')
 const {authenticate} = require('./../middleware/authenticate')
+const socialAuth = require('./social')
 
 router.post('/', (req, res) => {
   const {email, password} = req.body
@@ -18,18 +19,30 @@ router.post('/', (req, res) => {
 
 router.post('/google', (req, res) => {
   const {token} = req.body
-  // get payload by google token
-  const email = payload['email']
-  const verified = payload['email_verified'] === 'true'
-  const password = token.slice(0, 16)
+  socialAuth.verifyGoogleAuth(token)
+    .then(payload => ({
+      email: payload['email'],
+      verified: payload['email_verified'],
+      password: token.slice(0, 16),
+      social: {
+        google: payload['sub']
+      }
+    }))
+    .then(userInfo => {
+      return User.findOne({email: userInfo.email})
+        .then(user => {
+          if (!user) return Promise.reject(new Error('User not found'))
 
-  const user = new User({email, password, verified})
-
-  user
-    .save()
-    .then(user => user.authenticate())
-    .then(() => user.requestVerification())
-    .then(token => res.header('X-Authorization', token).send(user.toJSON()))
+          user.social.google = userInfo.social.google
+          return user
+        })
+        .catch(() => new User(userInfo))
+    })
+    .then(user => user.save()
+      .then(user => user.authenticate())
+      .then(() => user.requestVerification())
+      .then(token => res.header('X-Authorization', token).send(user.toJSON()))
+    )
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
