@@ -23,6 +23,7 @@ upload:
    - chmod 644 ~/.ssh/known_hosts
  script:
    - ssh $CI_USER@$SERVER_IP sudo systemctl stop wishwish
-   - scp -vrC ![*.git] $CI_USER@$SERVER_IP:$HOST_PATH/
+   - rm -rf .git
+   - scp -vrC ./ $CI_USER@$SERVER_IP:$HOST_PATH/
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; yarn"
    - ssh $CI_USER@$SERVER_IP sudo systemctl start wishwish
