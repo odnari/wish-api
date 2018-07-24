@@ -16,6 +16,23 @@ router.post('/', (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
+router.post('/google', (req, res) => {
+  const {token} = req.body
+  // get payload by google token
+  const email = payload['email']
+  const verified = payload['email_verified'] === 'true'
+  const password = token.slice(0, 16)
+
+  const user = new User({email, password, verified})
+
+  user
+    .save()
+    .then(user => user.authenticate())
+    .then(() => user.requestVerification())
+    .then(token => res.header('X-Authorization', token).send(user.toJSON()))
+    .catch(error => res.send({status: 400, error: error.message}))
+})
+
 router.post('/login', (req, res) => {
   const {email, password} = req.body
 
