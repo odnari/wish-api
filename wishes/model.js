@@ -15,7 +15,6 @@ const WishSchema = new mongoose.Schema({
   link: {
     type: String,
     trim: true,
-    minlength: 4,
     validate: {
       validator: validator.isURL,
       message: '{VALUE} is not a valid url'
