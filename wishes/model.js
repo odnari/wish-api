@@ -30,10 +30,6 @@ const WishSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  completedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    default: null
-  },
   completedReason: {
     type: String,
     trim: true,
@@ -47,6 +43,9 @@ const WishSchema = new mongoose.Schema({
   reservedBy: {
     type: mongoose.Schema.Types.ObjectId,
     default: null
+  },
+  reservedByName: {
+    type: String
   },
   _creator: {
     type: mongoose.Schema.Types.ObjectId,

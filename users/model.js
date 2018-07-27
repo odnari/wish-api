@@ -6,6 +6,12 @@ const pick = require('lodash/pick')
 const mailHelper = require('./../mail/helper')
 
 const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    trim: true,
+    require: true,
+    minlength: 3
+  },
   email: {
     type: String,
     require: true,

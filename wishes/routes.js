@@ -107,10 +107,10 @@ router.delete('/:id/complete', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
     completed: false,
-    completedBy: null,
     completedReason: null
   }
 
+  // TODO: allow only if user === creator
   if (!ObjectID.isValid(id)) {
     return res.send({ status: 503, error: 'Invalid id' })
   }
@@ -129,7 +129,8 @@ router.post('/:id/reserve', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
     reserved: true,
-    reservedBy: req.user._id
+    reservedBy: req.user._id,
+    reservedByName: req.body.name || req.user.name
   }
 
   if (!ObjectID.isValid(id)) {
@@ -152,7 +153,7 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
     reserved: false,
     reservedBy: null
   }
-
+  // TODO: allow only if user === reserveBy
   if (!ObjectID.isValid(id)) {
     return res.send({ status: 503, error: 'Invalid id' })
   }
