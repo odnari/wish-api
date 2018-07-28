@@ -19,14 +19,17 @@ const verifyGoogleUser = (token) => (
 
 const getGoogleUser = (token) => (
   verifyGoogleUser(token)
-    .then(payload => ({
-      email: payload['email'],
-      verified: payload['email_verified'],
-      password: token.slice(0, 16),
-      social: {
-        google: payload['sub']
-      }
-    }))
+    .then(payload => {
+      return ({
+        email: payload['email'],
+        verified: payload['email_verified'],
+        name: payload['name'],
+        password: token.slice(0, 16),
+        social: {
+          google: payload['sub']
+        }
+      })
+    })
 )
 
 const getFacebookUser = (token) => {
@@ -54,6 +57,7 @@ const getFacebookUser = (token) => {
       email: payload['email'],
       verified: true,
       password: token.slice(0, 16),
+      name: payload['name'],
       social: {
         facebook: payload['id']
       }
@@ -66,6 +70,9 @@ const socialize = (userInfo, socialization) => (
       if (!user) return Promise.reject(new Error('User not found'))
 
       user.social[socialization] = userInfo.social[socialization]
+      if (!user.name && userInfo.name) {
+        user.name = userInfo.name
+      }
       return user
     })
     .catch(() => new User(userInfo))
