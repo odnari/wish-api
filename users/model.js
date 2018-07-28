@@ -56,8 +56,14 @@ const UserSchema = new mongoose.Schema({
   ]
 })
 
-UserSchema.methods.toJSON = function () {
-  return pick(this, ['_id', 'email', 'verified', 'name'])
+UserSchema.methods.toJSON = function (isPublic) {
+  let fields = []
+
+  if (!isPublic) {
+    fields = [...fields, 'email', '_id']
+  }
+
+  return pick(this, fields)
 }
 
 UserSchema.methods.authenticate = function () {
