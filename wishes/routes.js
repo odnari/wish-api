@@ -29,7 +29,7 @@ router.get('/', authenticate, (req, res) => {
 
 // TODO: add guest view
 router.get('/user/:id', authenticate, (req, res) => {
-  const userId = req.body._id
+  const userId = req.params.id
 
   if (!ObjectID.isValid(userId)) {
     return res.send({ status: 503, error: 'Invalid id' })
