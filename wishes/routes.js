@@ -27,6 +27,36 @@ router.get('/', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// TODO: add guest view
+router.get('/user/:id', authenticate, (req, res) => {
+  const userId = req.body._id
+
+  if (!ObjectID.isValid(userId)) {
+    return res.send({ status: 503, error: 'Invalid id' })
+  }
+
+  const fields = [
+    '_id',
+    'title',
+    'description',
+    'link',
+    'completed',
+    'completedBy',
+    'completedReason',
+    'reserved',
+    'reservedBy'
+  ]
+
+  Wish
+    .find({ _creator: userId, deleted: false }, fields.join(' '))
+    .then(notes => {
+      if (!notes) res.send({ status: 404, error: 'Not found' })
+
+      res.send(notes)
+    })
+    .catch(error => res.send({ status: 400, error }))
+})
+
 router.get('/:id', authenticate, (req, res) => {
   const id = req.params.id
 
