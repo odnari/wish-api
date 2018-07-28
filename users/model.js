@@ -57,7 +57,7 @@ const UserSchema = new mongoose.Schema({
 })
 
 UserSchema.methods.toJSON = function () {
-  return pick(this, ['_id', 'email', 'verified'])
+  return pick(this, ['_id', 'email', 'verified', 'name'])
 }
 
 UserSchema.methods.authenticate = function () {

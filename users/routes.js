@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const { ObjectID } = require('mongodb')
 const pullAllBy = require('lodash/pullAllBy')
 const {User} = require('./model')
 const {authenticate} = require('./../middleware/authenticate')
@@ -56,8 +57,20 @@ router.post('/me/verify', authenticate, (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
-router.get('/me', authenticate, (req, res) => {
-  res.send(req.user.toJSON())
+router.get('/:id', authenticate, (req, res) => {
+  const userId = req.params.id
+
+  if (!ObjectID.isValid(userId)) {
+    return res.send({ status: 503, error: 'Invalid id' })
+  }
+
+  User.findById(userId)
+    .then(user => {
+      if (!user) return Promise.reject(new Error('User not found'))
+
+      res.send(user.toJSON())
+    })
+    .catch(error => res.send({status: 400, error: error.message}))
 })
 
 router.get('/verify/:token', (req, res) => {
