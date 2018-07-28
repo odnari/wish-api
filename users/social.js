@@ -70,9 +70,9 @@ const socialize = (userInfo, socialization) => (
       if (!user) return Promise.reject(new Error('User not found'))
 
       user.social[socialization] = userInfo.social[socialization]
-      if (!user.name && userInfo.name) {
-        user.name = userInfo.name
-      }
+      if (!user.verified) user.verified = userInfo.verified
+      if (!user.name && userInfo.name) user.name = userInfo.name
+
       return user
     })
     .catch(() => new User(userInfo))
