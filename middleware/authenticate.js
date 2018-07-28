@@ -14,6 +14,17 @@ const authenticate = (req, res, next) => {
     .catch(error => res.send({status: 403, error}))
 }
 
+const authenticatedOrGuest = (req, res, next) => {
+  const token = req.headers['x-authorization']
+
+  if (token) {
+    authenticate(req, res, next)
+  } else {
+    next()
+  }
+}
+
 module.exports = {
-  authenticate
+  authenticate,
+  authenticatedOrGuest
 }

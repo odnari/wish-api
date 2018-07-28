@@ -2,7 +2,7 @@ const router = require('express').Router()
 const pick = require('lodash/pick')
 const { ObjectID } = require('mongodb')
 const { Wish } = require('./model')
-const { authenticate } = require('./../middleware/authenticate')
+const { authenticate, authenticatedOrGuest } = require('./../middleware/authenticate')
 
 router.get('/', authenticate, (req, res) => {
   const fields = [
@@ -27,8 +27,7 @@ router.get('/', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// TODO: add guest view
-router.get('/user/:id', authenticate, (req, res) => {
+router.get('/user/:id', authenticatedOrGuest, (req, res) => {
   const userId = req.params.id
 
   if (!ObjectID.isValid(userId)) {
