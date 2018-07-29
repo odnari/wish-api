@@ -14,6 +14,9 @@ const {router: wishRouter} = require('./wishes/routes')
 
 const app = express()
 
+// fix for chrome caching
+app.disable('etag')
+
 app.use(bodyParser.json())
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*')
