@@ -23,7 +23,7 @@ const WishSchema = new mongoose.Schema({
     }
   },
   price: {
-    type: Number,
+    type: String,
     validate: {
       validator: validator.isDecimal,
       message: '{VALUE} is not a valid price'
