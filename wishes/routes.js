@@ -21,6 +21,7 @@ router.get('/', authenticate, (req, res) => {
 
   Wish
     .find({ _creator: req.user._id, deleted: false }, fields.join(' '))
+    .sort({date: 1})
     .then(notes => {
       if (!notes) res.send({ status: 404, error: 'Not found' })
 
@@ -52,6 +53,7 @@ router.get('/user/:id', authenticatedOrGuest, (req, res) => {
 
   Wish
     .find({ _creator: userId, deleted: false }, fields.join(' '))
+    .sort({date: 1})
     .then(notes => {
       if (!notes) res.send({ status: 404, error: 'Not found' })
 
