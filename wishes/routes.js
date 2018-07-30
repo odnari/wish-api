@@ -86,7 +86,7 @@ router.post('/', authenticate, (req, res) => {
     'currency'
   ])
   body._creator = req.user._id
-  body.price = +body.price.toFixed(2)
+  body.price = +(+body.price).toFixed(2)
 
   const note = new Wish(body)
   note
@@ -105,7 +105,7 @@ router.patch('/:id', authenticate, (req, res) => {
     'currency'
   ])
   body._creator = req.user._id
-  body.price = +body.price.toFixed(2)
+  body.price = +(+body.price).toFixed(2)
 
   if (!ObjectID.isValid(id)) {
     return res.send({ status: 503, error: 'Invalid id' })
