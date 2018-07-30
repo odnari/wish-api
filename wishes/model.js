@@ -22,6 +22,17 @@ const WishSchema = new mongoose.Schema({
       message: '{VALUE} is not a valid url'
     }
   },
+  price: {
+    type: Number,
+    validate: {
+      validator: validator.isDecimal,
+      message: '{VALUE} is not a valid price'
+    }
+  },
+  currency: {
+    type: String,
+    trim: true
+  },
   deleted: {
     type: Boolean,
     default: false

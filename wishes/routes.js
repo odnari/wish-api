@@ -14,7 +14,9 @@ router.get('/', authenticate, (req, res) => {
     'completedBy',
     'completedReason',
     'reserved',
-    'reservedBy'
+    'reservedBy',
+    'price',
+    'currency'
   ]
 
   Wish
@@ -43,7 +45,9 @@ router.get('/user/:id', authenticatedOrGuest, (req, res) => {
     'completedBy',
     'completedReason',
     'reserved',
-    'reservedBy'
+    'reservedBy',
+    'price',
+    'currency'
   ]
 
   Wish
@@ -77,9 +81,12 @@ router.post('/', authenticate, (req, res) => {
   const body = pick(req.body, [
     'title',
     'description',
-    'link'
+    'link',
+    'price',
+    'currency'
   ])
   body._creator = req.user._id
+  body.price = +body.price.toFixed(2)
 
   const note = new Wish(body)
   note
@@ -93,8 +100,12 @@ router.patch('/:id', authenticate, (req, res) => {
   const body = pick(req.body, [
     'title',
     'description',
-    'link'
+    'link',
+    'price',
+    'currency'
   ])
+  body._creator = req.user._id
+  body.price = +body.price.toFixed(2)
 
   if (!ObjectID.isValid(id)) {
     return res.send({ status: 503, error: 'Invalid id' })
