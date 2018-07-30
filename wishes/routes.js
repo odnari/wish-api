@@ -88,6 +88,11 @@ router.post('/', authenticate, (req, res) => {
   body._creator = req.user._id
   body.price = (+body.price).toFixed(2)
 
+  if (!(+body.price)) {
+    body.price = null
+    body.currency = null
+  }
+
   const note = new Wish(body)
   note
     .save()
@@ -106,6 +111,11 @@ router.patch('/:id', authenticate, (req, res) => {
   ])
   body._creator = req.user._id
   body.price = (+body.price).toFixed(2)
+
+  if (!(+body.price)) {
+    body.price = null
+    body.currency = null
+  }
 
   if (!ObjectID.isValid(id)) {
     return res.send({ status: 503, error: 'Invalid id' })

@@ -57,12 +57,12 @@ if (process.env.ENV === 'development') {
   })
 }
 
-mailer.verify((err) => {
-  if (err) {
-    console.error('[express] ' + err.message)
-  } else {
-    console.info('[express] server is ready')
-  }
-})
+// mailer.verify((err) => {
+//   if (err) {
+//     console.error('[express] ' + err.message)
+//   } else {
+//     console.info('[express] server is ready')
+//   }
+// })
 
 module.exports = app
