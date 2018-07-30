@@ -89,8 +89,8 @@ router.post('/', authenticate, (req, res) => {
   body.price = (+body.price).toFixed(2)
 
   if (!(+body.price)) {
-    body.price = ''
-    body.currency = ''
+    body.price = null
+    body.currency = null
   }
 
   const note = new Wish(body)
@@ -113,8 +113,8 @@ router.patch('/:id', authenticate, (req, res) => {
   body.price = (+body.price).toFixed(2)
 
   if (!(+body.price)) {
-    body.price = ''
-    body.currency = ''
+    body.price = null
+    body.currency = null
   }
 
   if (!ObjectID.isValid(id)) {
