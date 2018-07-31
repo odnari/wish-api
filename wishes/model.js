@@ -46,7 +46,6 @@ const WishSchema = new mongoose.Schema({
   completedReason: {
     type: String,
     trim: true,
-    minlength: 4,
     default: null
   },
   reserved: {

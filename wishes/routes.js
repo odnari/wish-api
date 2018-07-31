@@ -139,7 +139,6 @@ router.post('/:id/complete', authenticate, (req, res) => {
     'completedReason'
   ])
   body.completed = true
-  body.completedBy = req.user._id
 
   if (!ObjectID.isValid(id)) {
     return res.send({ status: 503, error: 'Invalid id' })
