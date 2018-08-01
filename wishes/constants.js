@@ -20,7 +20,7 @@ const bodyFields = [
   'currency'
 ]
 
-export const defaults = {
+module.exports.defaults = {
   listVisibleFields,
   bodyFields
 }
