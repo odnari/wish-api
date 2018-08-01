@@ -3,24 +3,27 @@ const pick = require('lodash/pick')
 const { ObjectID } = require('mongodb')
 const { Wish } = require('./model')
 const { authenticate, authenticatedOrGuest } = require('./../middleware/authenticate')
+const { defaults } = require('./constants')
+
+const findByIdAndUpdateWith = (id, body) => {
+  if (!ObjectID.isValid(id)) {
+    // eslint-disable-next-line prefer-promise-reject-errors
+    return Promise.reject({status: 503, error: 'Invalid id'})
+  }
+
+  return Wish
+    .findByIdAndUpdate(id, {$set: body}, { new: true })
+    .then(note => {
+      if (!note) return { status: 404, error: 'Not found' }
+
+      return { _id: note._id }
+    })
+    .catch(error => ({ status: 400, error }))
+}
 
 router.get('/', authenticate, (req, res) => {
-  const fields = [
-    '_id',
-    'title',
-    'description',
-    'link',
-    'completed',
-    'completedBy',
-    'completedReason',
-    'reserved',
-    'reservedBy',
-    'price',
-    'currency'
-  ]
-
   Wish
-    .find({ _creator: req.user._id, deleted: false }, fields.join(' '))
+    .find({ _creator: req.user._id, deleted: false }, defaults.listVisibleFields)
     .sort({createdAt: -1})
     .then(notes => {
       if (!notes) res.send({ status: 404, error: 'Not found' })
@@ -37,22 +40,8 @@ router.get('/user/:id', authenticatedOrGuest, (req, res) => {
     return res.send({ status: 503, error: 'Invalid id' })
   }
 
-  const fields = [
-    '_id',
-    'title',
-    'description',
-    'link',
-    'completed',
-    'completedBy',
-    'completedReason',
-    'reserved',
-    'reservedBy',
-    'price',
-    'currency'
-  ]
-
   Wish
-    .find({ _creator: userId, deleted: false }, fields.join(' '))
+    .find({ _creator: userId, deleted: false }, defaults.listVisibleFields)
     .sort({createdAt: -1})
     .then(notes => {
       if (!notes) res.send({ status: 404, error: 'Not found' })
@@ -80,13 +69,7 @@ router.get('/:id', authenticate, (req, res) => {
 })
 
 router.post('/', authenticate, (req, res) => {
-  const body = pick(req.body, [
-    'title',
-    'description',
-    'link',
-    'price',
-    'currency'
-  ])
+  const body = pick(req.body, defaults.bodyFields)
   body._creator = req.user._id
   body.price = (+body.price).toFixed(2)
 
@@ -104,14 +87,7 @@ router.post('/', authenticate, (req, res) => {
 
 router.patch('/:id', authenticate, (req, res) => {
   const id = req.params.id
-  const body = pick(req.body, [
-    'title',
-    'description',
-    'link',
-    'price',
-    'currency'
-  ])
-  body._creator = req.user._id
+  const body = pick(req.body, defaults.bodyFields)
   body.price = (+body.price).toFixed(2)
 
   if (!(+body.price)) {
@@ -119,18 +95,8 @@ router.patch('/:id', authenticate, (req, res) => {
     body.currency = null
   }
 
-  if (!ObjectID.isValid(id)) {
-    return res.send({ status: 503, error: 'Invalid id' })
-  }
-
-  Wish
-    .findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-    .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
-
-      res.send({ _id: note._id })
-    })
-    .catch(error => res.send({ status: 400, error }))
+  findByIdAndUpdateWith(id, body)
+    .then(responseObject => res.send(responseObject))
 })
 
 router.post('/:id/complete', authenticate, (req, res) => {
@@ -140,18 +106,8 @@ router.post('/:id/complete', authenticate, (req, res) => {
   ])
   body.completed = true
 
-  if (!ObjectID.isValid(id)) {
-    return res.send({ status: 503, error: 'Invalid id' })
-  }
-
-  Wish
-    .findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-    .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
-
-      res.send(note)
-    })
-    .catch(error => res.send({ status: 400, error }))
+  findByIdAndUpdateWith(id, body)
+    .then(responseObject => res.send(responseObject))
 })
 
 router.delete('/:id/complete', authenticate, (req, res) => {
@@ -162,18 +118,9 @@ router.delete('/:id/complete', authenticate, (req, res) => {
   }
 
   // TODO: allow only if user === creator
-  if (!ObjectID.isValid(id)) {
-    return res.send({ status: 503, error: 'Invalid id' })
-  }
 
-  Wish
-    .findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-    .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
-
-      res.send(note)
-    })
-    .catch(error => res.send({ status: 400, error }))
+  findByIdAndUpdateWith(id, body)
+    .then(responseObject => res.send(responseObject))
 })
 
 router.post('/:id/reserve', authenticate, (req, res) => {
@@ -184,18 +131,8 @@ router.post('/:id/reserve', authenticate, (req, res) => {
     reservedByName: req.body.name || req.user.name
   }
 
-  if (!ObjectID.isValid(id)) {
-    return res.send({ status: 503, error: 'Invalid id' })
-  }
-
-  Wish
-    .findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-    .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
-
-      res.send(note)
-    })
-    .catch(error => res.send({ status: 400, error }))
+  findByIdAndUpdateWith(id, body)
+    .then(responseObject => res.send(responseObject))
 })
 
 router.delete('/:id/reserve', authenticate, (req, res) => {
@@ -205,18 +142,9 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
     reservedBy: null
   }
   // TODO: allow only if user === reserveBy
-  if (!ObjectID.isValid(id)) {
-    return res.send({ status: 503, error: 'Invalid id' })
-  }
 
-  Wish
-    .findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-    .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
-
-      res.send(note)
-    })
-    .catch(error => res.send({ status: 400, error }))
+  findByIdAndUpdateWith(id, body)
+    .then(responseObject => res.send(responseObject))
 })
 
 router.delete('/:id', authenticate, (req, res) => {
