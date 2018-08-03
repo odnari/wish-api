@@ -18,7 +18,7 @@ const findByIdAndUpdateWith = (id, body, validate) => {
 
       validate && validate(note)
 
-      return { _id: note._id }
+      return note
     })
     .catch(error => ({ status: 400, error }))
 }
@@ -155,7 +155,8 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
     reserved: false,
-    reservedBy: null
+    reservedBy: null,
+    reservedByName: null
   }
 
   findByIdAndUpdateWith(id, body, (note) => {
