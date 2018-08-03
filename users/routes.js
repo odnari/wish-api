@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const {ObjectID} = require('mongodb')
 const pullAllBy = require('lodash/pullAllBy')
+const pick = require('lodash/pick')
 const {User} = require('./model')
 const {authenticate, authenticatedOrGuest} = require('./../middleware/authenticate')
 const {getGoogleUser, getFacebookUser, socialize, SOCIALIZATIONS} = require('./social')
@@ -90,6 +91,26 @@ router.get('/verify/:token', (req, res) => {
         .then(token => res.header('X-Authorization', token).send(user))
     })
     .catch(error => res.send({status: 403, error}))
+})
+
+router.patch('/:id', authenticate, (req, res) => {
+  const body = pick(req.body, ['email', 'password', 'name'])
+
+  if (!body.password.length) {
+    delete body.password
+  }
+
+  if (!ObjectID.isValid(req.params.id)) {
+    return res.send({status: 503, error: 'Invalid id'})
+  }
+
+  User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
+    .then(user => {
+      if (!user) return { status: 404, error: 'Not found' }
+
+      return user.toJSON()
+    })
+    .catch(error => ({ status: 400, error }))
 })
 
 module.exports = {
