@@ -16,7 +16,7 @@ const findByIdAndUpdateWith = (id, body, validate) => {
     .then(note => {
       if (!note) return { status: 404, error: 'Not found' }
 
-      validate(note)
+      validate && validate(note)
 
       return { _id: note._id }
     })
