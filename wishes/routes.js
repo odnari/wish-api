@@ -5,7 +5,7 @@ const { Wish } = require('./model')
 const { authenticate, authenticatedOrGuest } = require('./../middleware/authenticate')
 const { defaults } = require('./constants')
 
-const findByIdAndUpdateWith = (id, body) => {
+const findByIdAndUpdateWith = (id, body, validate) => {
   if (!ObjectID.isValid(id)) {
     // eslint-disable-next-line prefer-promise-reject-errors
     return Promise.reject({status: 503, error: 'Invalid id'})
@@ -15,6 +15,8 @@ const findByIdAndUpdateWith = (id, body) => {
     .findByIdAndUpdate(id, {$set: body}, { new: true })
     .then(note => {
       if (!note) return { status: 404, error: 'Not found' }
+
+      validate(note)
 
       return { _id: note._id }
     })
@@ -95,6 +97,10 @@ router.patch('/:id', authenticate, (req, res) => {
     body.currency = null
   }
 
+  if (id !== req.user._id.toHexString()) {
+    return res.send({status: 503, error: 'Access denied'})
+  }
+
   findByIdAndUpdateWith(id, body)
     .then(responseObject => res.send(responseObject))
 })
@@ -105,6 +111,10 @@ router.post('/:id/complete', authenticate, (req, res) => {
     'completedReason'
   ])
   body.completed = true
+
+  if (id !== req.user._id.toHexString()) {
+    return res.send({status: 503, error: 'Access denied'})
+  }
 
   findByIdAndUpdateWith(id, body)
     .then(responseObject => res.send(responseObject))
@@ -117,7 +127,9 @@ router.delete('/:id/complete', authenticate, (req, res) => {
     completedReason: null
   }
 
-  // TODO: allow only if user === creator
+  if (id !== req.user._id.toHexString()) {
+    return res.send({status: 503, error: 'Access denied'})
+  }
 
   findByIdAndUpdateWith(id, body)
     .then(responseObject => res.send(responseObject))
@@ -131,6 +143,10 @@ router.post('/:id/reserve', authenticate, (req, res) => {
     reservedByName: req.body.name || req.user.name
   }
 
+  if (body.reservedBy === req.user._id.toHexString()) {
+    return res.send({status: 503, error: 'Not permitted'})
+  }
+
   findByIdAndUpdateWith(id, body)
     .then(responseObject => res.send(responseObject))
 })
@@ -141,16 +157,19 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
     reserved: false,
     reservedBy: null
   }
-  // TODO: allow only if user === reserveBy
 
-  findByIdAndUpdateWith(id, body)
+  findByIdAndUpdateWith(id, body, (note) => {
+    if (note.reservedBy !== req.user._id) {
+      throw new Error('No access')
+    }
+  })
     .then(responseObject => res.send(responseObject))
 })
 
 router.delete('/:id', authenticate, (req, res) => {
   const id = req.params.id
 
-  if (!ObjectID.isValid(id)) {
+  if (!ObjectID.isValid(id) || id !== req.user._id.toHexString()) {
     return res.send({ status: 503, error: 'Invalid id' })
   }
 
