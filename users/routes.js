@@ -108,7 +108,7 @@ router.patch('/:id', authenticate, (req, res) => {
     .then(user => {
       if (!user) return { status: 404, error: 'Not found' }
 
-      return user.toJSON()
+      return res.send(user.toJSON())
     })
     .catch(error => ({ status: 400, error }))
 })
