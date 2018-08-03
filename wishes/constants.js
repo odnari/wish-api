@@ -8,6 +8,7 @@ const listVisibleFields = [
   'completedReason',
   'reserved',
   'reservedBy',
+  'reservedByName',
   'price',
   'currency'
 ].join(' ')

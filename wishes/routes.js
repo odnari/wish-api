@@ -5,7 +5,7 @@ const { Wish } = require('./model')
 const { authenticate, authenticatedOrGuest } = require('./../middleware/authenticate')
 const { defaults } = require('./constants')
 
-const findByIdAndUpdateWith = (id, body, validate) => {
+const findByIdAndUpdateWith = (id, body) => {
   if (!ObjectID.isValid(id)) {
     // eslint-disable-next-line prefer-promise-reject-errors
     return Promise.reject({status: 503, error: 'Invalid id'})
@@ -15,8 +15,6 @@ const findByIdAndUpdateWith = (id, body, validate) => {
     .findByIdAndUpdate(id, {$set: body}, { new: true })
     .then(note => {
       if (!note) return { status: 404, error: 'Not found' }
-
-      validate && validate(note)
 
       return note
     })
@@ -140,7 +138,7 @@ router.post('/:id/reserve', authenticate, (req, res) => {
   const body = {
     reserved: true,
     reservedBy: req.user._id,
-    reservedByName: req.body.name || req.user.name
+    reservedByName: req.body.name
   }
 
   if (body.reservedBy === req.user._id.toHexString()) {
@@ -159,12 +157,18 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
     reservedByName: null
   }
 
-  findByIdAndUpdateWith(id, body, (note) => {
-    if (note.reservedBy !== req.user._id) {
-      throw new Error('No access')
-    }
-  })
-    .then(responseObject => res.send(responseObject))
+  Wish.findById(id)
+    .then((note) => {
+      if (!note) return res.send({ status: 404, error: 'Not found' })
+
+      if (note.reservedBy.toHexString() !== req.user._id.toHexString()) {
+        return res.send({ status: 503, error: 'No access' })
+      }
+
+      return findByIdAndUpdateWith(id, body)
+        .then(responseObject => res.send(responseObject))
+    })
+    .catch(error => res.send({ status: 400, error }))
 })
 
 router.delete('/:id', authenticate, (req, res) => {
