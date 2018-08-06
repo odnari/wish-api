@@ -33,6 +33,18 @@ router.get('/', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+router.get('/reserved', authenticate, (req, res) => {
+  Wish
+    .find({ reservedBy: req.user._id, deleted: false }, defaults.listVisibleFields)
+    .sort({createdAt: -1})
+    .then(notes => {
+      if (!notes) res.send({ status: 404, error: 'Not found' })
+
+      res.send(notes)
+    })
+    .catch(error => res.send({ status: 400, error }))
+})
+
 router.get('/user/:id', authenticatedOrGuest, (req, res) => {
   const userId = req.params.id
 
