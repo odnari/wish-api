@@ -10,7 +10,8 @@ const listVisibleFields = [
   'reservedBy',
   'reservedByName',
   'price',
-  'currency'
+  'currency',
+  '_creator'
 ].join(' ')
 
 const bodyFields = [
