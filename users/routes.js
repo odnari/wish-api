@@ -16,8 +16,8 @@ const createUserFlow = (user, res) => (
 )
 
 router.post('/', (req, res) => {
-  const {email, password, description, name} = req.body
-  const user = new User({email, password, description, name})
+  const {email, password, name} = req.body
+  const user = new User({email, password, name})
 
   createUserFlow(user, res)
     .catch(error => res.send({status: 400, error: error.message}))
