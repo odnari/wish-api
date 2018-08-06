@@ -83,6 +83,7 @@ router.get('/:id', authenticate, (req, res) => {
 router.post('/', authenticate, (req, res) => {
   const body = pick(req.body, defaults.bodyFields)
   body._creator = req.user._id
+  body.creatorName = req.user.name
   body.price = (+body.price).toFixed(2)
 
   if (!(+body.price)) {

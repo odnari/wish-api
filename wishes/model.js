@@ -63,6 +63,9 @@ const WishSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
+  creatorName: {
+    type: String
+  },
   createdAt: {
     type: Date,
     default: Date.now
