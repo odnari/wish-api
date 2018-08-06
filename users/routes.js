@@ -100,6 +100,10 @@ router.patch('/:id', authenticate, (req, res) => {
     delete body.password
   }
 
+  if (!body.email.length) {
+    delete body.email
+  }
+
   if (!ObjectID.isValid(req.params.id) || (req.user._id.toHexString() !== req.params.id)) {
     return res.send({status: 503, error: 'Invalid id'})
   }
