@@ -37,6 +37,16 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  profiles: {
+    facebook: {
+      type: String,
+      default: null
+    },
+    twitter: {
+      type: String,
+      default: null
+    }
+  },
   social: {
     google: {
       type: String,
@@ -62,7 +72,7 @@ const UserSchema = new mongoose.Schema({
 })
 
 UserSchema.methods.toJSON = function (isPublic) {
-  let fields = ['verified', 'name']
+  let fields = ['verified', 'name', 'profiles']
 
   if (!isPublic) {
     fields = [...fields, 'email', '_id']

@@ -94,7 +94,7 @@ router.get('/verify/:token', (req, res) => {
 })
 
 router.patch('/:id', authenticate, (req, res) => {
-  const body = pick(req.body, ['email', 'password', 'name', 'description'])
+  const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
 
   if (!body.password.length) {
     delete body.password
