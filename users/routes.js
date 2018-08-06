@@ -16,8 +16,8 @@ const createUserFlow = (user, res) => (
 )
 
 router.post('/', (req, res) => {
-  const {email, password} = req.body
-  const user = new User({email, password})
+  const {email, password, description, name} = req.body
+  const user = new User({email, password, description, name})
 
   createUserFlow(user, res)
     .catch(error => res.send({status: 400, error: error.message}))
@@ -94,7 +94,7 @@ router.get('/verify/:token', (req, res) => {
 })
 
 router.patch('/:id', authenticate, (req, res) => {
-  const body = pick(req.body, ['email', 'password', 'name'])
+  const body = pick(req.body, ['email', 'password', 'name', 'description'])
 
   if (!body.password.length) {
     delete body.password
