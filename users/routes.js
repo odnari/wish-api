@@ -5,6 +5,7 @@ const pullAllBy = require('lodash/pullAllBy')
 const pick = require('lodash/pick')
 const {User} = require('./model')
 const {authenticate, authenticatedOrGuest} = require('./../middleware/authenticate')
+const {upload} = require('./../middleware/upload')
 const {getGoogleUser, getFacebookUser, socialize, SOCIALIZATIONS} = require('./social')
 
 const createUserFlow = (user, res) => (
@@ -91,6 +92,58 @@ router.get('/verify/:token', (req, res) => {
         .then(token => res.header('X-Authorization', token).send(user))
     })
     .catch(error => res.send({status: 403, error}))
+})
+
+router.post('/:id/avatar', authenticate, upload.single('avatar'), (req, res) => {
+  const body = {
+    style: {
+      ...req.user.style
+    }
+  }
+
+  if (!req.file) {
+    return res.send({status: 500, error: 'Image saving error'})
+  } else {
+    body.style.avatar = req.file.path
+  }
+
+  if (!ObjectID.isValid(req.params.id) || (req.user._id.toHexString() !== req.params.id)) {
+    return res.send({status: 503, error: 'Invalid id'})
+  }
+
+  User.findByIdAndUpdate(req.params.id, {$set: body})
+    .then(user => {
+      if (!user) return { status: 404, error: 'Not found' }
+
+      return res.send(req.file.path)
+    })
+    .catch(error => ({ status: 400, error }))
+})
+
+router.post('/:id/background', authenticate, upload.single('background'), (req, res) => {
+  const body = {
+    style: {
+      ...req.user.style
+    }
+  }
+
+  if (!req.file) {
+    return res.send({status: 500, error: 'Image saving error'})
+  } else {
+    body.style.background = req.file.path
+  }
+
+  if (!ObjectID.isValid(req.params.id) || (req.user._id.toHexString() !== req.params.id)) {
+    return res.send({status: 503, error: 'Invalid id'})
+  }
+
+  User.findByIdAndUpdate(req.params.id, {$set: body})
+    .then(user => {
+      if (!user) return { status: 404, error: 'Not found' }
+
+      return res.send(req.file.path)
+    })
+    .catch(error => ({ status: 400, error }))
 })
 
 router.patch('/:id', authenticate, (req, res) => {

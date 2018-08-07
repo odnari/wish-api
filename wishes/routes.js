@@ -108,12 +108,18 @@ router.patch('/:id', authenticate, (req, res) => {
     body.currency = null
   }
 
-  if (id !== req.user._id.toHexString()) {
-    return res.send({status: 503, error: 'Access denied'})
-  }
+  Wish.findById(id)
+    .then((wish) => {
+      if (!wish) return res.send({ status: 404, error: 'Not found' })
 
-  findByIdAndUpdateWith(id, body)
-    .then(responseObject => res.send(responseObject))
+      if (wish._creator.toHexString() !== req.user._id.toHexString()) {
+        return res.send({ status: 503, error: 'No access' })
+      }
+
+      return findByIdAndUpdateWith(id, body)
+        .then(responseObject => res.send(responseObject))
+    })
+    .catch(error => res.send({ status: 400, error }))
 })
 
 router.post('/:id/complete', authenticate, (req, res) => {

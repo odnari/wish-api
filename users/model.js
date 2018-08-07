@@ -57,6 +57,16 @@ const UserSchema = new mongoose.Schema({
       default: null
     }
   },
+  style: {
+    avatar: {
+      type: String,
+      default: null
+    },
+    background: {
+      type: String,
+      default: null
+    }
+  },
   tokens: [
     {
       access: {
@@ -72,7 +82,7 @@ const UserSchema = new mongoose.Schema({
 })
 
 UserSchema.methods.toJSON = function (isPublic) {
-  let fields = ['verified', 'name', 'profiles', 'description']
+  let fields = ['verified', 'name', 'profiles', 'description', 'style']
 
   if (!isPublic) {
     fields = [...fields, 'email', '_id']
