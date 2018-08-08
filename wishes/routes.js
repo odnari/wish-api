@@ -129,12 +129,18 @@ router.post('/:id/complete', authenticate, (req, res) => {
   ])
   body.completed = true
 
-  if (id !== req.user._id.toHexString()) {
-    return res.send({status: 503, error: 'Access denied'})
-  }
+  Wish.findById(id)
+    .then((wish) => {
+      if (!wish) return res.send({ status: 404, error: 'Not found' })
 
-  findByIdAndUpdateWith(id, body)
-    .then(responseObject => res.send(responseObject))
+      if (wish._creator.toHexString() !== req.user._id.toHexString()) {
+        return res.send({ status: 503, error: 'No access' })
+      }
+
+      return findByIdAndUpdateWith(id, body)
+        .then(responseObject => res.send(responseObject))
+    })
+    .catch(error => res.send({ status: 400, error }))
 })
 
 router.delete('/:id/complete', authenticate, (req, res) => {
@@ -144,12 +150,18 @@ router.delete('/:id/complete', authenticate, (req, res) => {
     completedReason: null
   }
 
-  if (id !== req.user._id.toHexString()) {
-    return res.send({status: 503, error: 'Access denied'})
-  }
+  Wish.findById(id)
+    .then((wish) => {
+      if (!wish) return res.send({ status: 404, error: 'Not found' })
 
-  findByIdAndUpdateWith(id, body)
-    .then(responseObject => res.send(responseObject))
+      if (wish._creator.toHexString() !== req.user._id.toHexString()) {
+        return res.send({ status: 503, error: 'No access' })
+      }
+
+      return findByIdAndUpdateWith(id, body)
+        .then(responseObject => res.send(responseObject))
+    })
+    .catch(error => res.send({ status: 400, error }))
 })
 
 router.post('/:id/reserve', authenticate, (req, res) => {
@@ -193,22 +205,27 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
 router.delete('/:id', authenticate, (req, res) => {
   const id = req.params.id
 
-  if (!ObjectID.isValid(id) || id !== req.user._id.toHexString()) {
-    return res.send({ status: 503, error: 'Invalid id' })
-  }
+  Wish.findById(id)
+    .then((note) => {
+      if (!note) return res.send({status: 404, error: 'Not found'})
 
-  Wish
-    .findByIdAndUpdate(req.params.id, {
-      $set: {
-        deleted: true
+      if (note._creator.toHexString() !== req.user._id.toHexString()) {
+        return res.send({status: 503, error: 'No access'})
       }
-    }, { new: true })
-    .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
 
-      res.send()
+      return Wish
+        .findByIdAndUpdate(req.params.id, {
+          $set: {
+            deleted: true
+          }
+        }, {new: true})
+        .then(note => {
+          if (!note) res.send({status: 404, error: 'Not found'})
+
+          res.send()
+        })
+        .catch(error => res.send({status: 400, error}))
     })
-    .catch(error => res.send({ status: 400, error }))
 })
 
 module.exports = { router }
