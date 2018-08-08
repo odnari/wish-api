@@ -144,19 +144,6 @@ UserSchema.statics.findByCreds = function (email, password) {
     })
 }
 
-UserSchema.pre('save', function (next) {
-  if (this.isModified('password')) {
-    bcrypt.genSalt(10, (_, salt) => {
-      bcrypt.hash(this.password, salt, (_, hash) => {
-        this.password = hash
-        next()
-      })
-    })
-  } else {
-    next()
-  }
-})
-
 UserSchema.methods.requestVerification = function () {
   if (this.verified) return Promise.resolve()
 

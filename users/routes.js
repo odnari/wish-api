@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const {ObjectID} = require('mongodb')
+const bcrypt = require('bcryptjs')
 const pullAllBy = require('lodash/pullAllBy')
 const pick = require('lodash/pick')
 const {User} = require('./model')
@@ -149,10 +150,6 @@ router.post('/:id/background', authenticate, upload.single('background'), (req, 
 router.patch('/:id', authenticate, (req, res) => {
   const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
 
-  if (!body.password.length) {
-    delete body.password
-  }
-
   if (!body.email.length) {
     delete body.email
   }
@@ -161,13 +158,29 @@ router.patch('/:id', authenticate, (req, res) => {
     return res.send({status: 503, error: 'Invalid id'})
   }
 
-  User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-    .then(user => {
-      if (!user) return { status: 404, error: 'Not found' }
+  if (!body.password.length) {
+    delete body.password
+    User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
+      .then(user => {
+        if (!user) return { status: 404, error: 'Not found' }
 
-      return res.send(user.toJSON())
+        return res.send(user.toJSON())
+      })
+      .catch(error => ({ status: 400, error }))
+  } else {
+    bcrypt.genSalt(10, (_, salt) => {
+      bcrypt.hash(body.password, salt, (_, hash) => {
+        body.password = hash
+        User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
+          .then(user => {
+            if (!user) return { status: 404, error: 'Not found' }
+
+            return res.send(user.toJSON())
+          })
+          .catch(error => ({ status: 400, error }))
+      })
     })
-    .catch(error => ({ status: 400, error }))
+  }
 })
 
 module.exports = {
