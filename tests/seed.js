@@ -10,14 +10,21 @@ const users = [{
   _id: userOneId,
   email: 'andrew@example.com',
   password: 'userOnePass',
-  tokens: [{
-    access: 'auth',
-    token: jwt.sign({_id: userOneId, access: 'auth'}, process.env.SECRET).toString()
-  }]
+  name: 'userone',
+  tokens: [
+    {
+      access: 'auth',
+      token: jwt.sign({_id: userOneId, access: 'auth'}, process.env.SECRET).toString()
+    }, {
+      access: 'email_verify',
+      token: jwt.sign({_id: userOneId, access: 'email_verify'}, process.env.SECRET).toString()
+    }
+  ]
 }, {
   _id: userTwoId,
   email: 'jen@example.com',
   password: 'userTwoPass',
+  name: 'usertwo',
   tokens: [{
     access: 'auth',
     token: jwt.sign({_id: userTwoId, access: 'auth'}, process.env.SECRET).toString()

@@ -3,6 +3,7 @@ const validator = require('validator')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const pick = require('lodash/pick')
+const pullAllBy = require('lodash/pullAllBy')
 const mailHelper = require('./../mail/helper')
 
 const UserSchema = new mongoose.Schema({
@@ -82,10 +83,10 @@ const UserSchema = new mongoose.Schema({
 })
 
 UserSchema.methods.toJSON = function (isPublic) {
-  let fields = ['verified', 'name', 'profiles', 'description', 'style']
+  let fields = ['_id', 'verified', 'name', 'profiles', 'description', 'style']
 
   if (!isPublic) {
-    fields = [...fields, 'email', '_id']
+    fields = [...fields, 'email']
   }
 
   return pick(this, fields)
@@ -161,22 +162,18 @@ UserSchema.methods.removeToken = function (token) {
     $pull: {
       tokens: { token }
     }
-  })
+  }, {multi: true})
 }
 
 UserSchema.statics.verifyByToken = function (token) {
-  this.findByToken(token)
+  return this.findByToken(token)
     .then((user) => {
       if (!user) throw new Error('User not found')
 
-      return user.update({
-        $set: {
-          verified: true
-        },
-        $pull: {
-          tokens: { token }
-        }
-      }, { new: true })
+      user.verified = true
+      user.tokens = pullAllBy(user.tokens, [{token}], 'token')
+
+      return user.save()
     })
 }
 

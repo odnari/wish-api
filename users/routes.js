@@ -28,6 +28,7 @@ const updateUserStyle = (user, prop, file) => {
   }
 }
 
+// tested
 router.get('/:id', authenticatedOrGuest, (req, res) => {
   const userId = req.params.id
 
@@ -44,6 +45,7 @@ router.get('/:id', authenticatedOrGuest, (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
+// tested
 router.patch('/:id', authenticate, (req, res) => {
   const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
 
@@ -54,7 +56,7 @@ router.patch('/:id', authenticate, (req, res) => {
   })
 
   if (!ObjectID.isValid(req.params.id) || (req.user._id.toHexString() !== req.params.id)) {
-    return res.send({status: 503, error: 'Invalid id'})
+    return res.send({status: 403, error: 'No access'})
   }
 
   if (!body.password) {
@@ -81,11 +83,13 @@ router.patch('/:id', authenticate, (req, res) => {
   }
 })
 
+// not testable TODO: handle errors on api side
 router.post('/:id/avatar', authenticate, upload.single('avatar'), (req, res) => {
   updateUserStyle(req.user, 'avatar', req.file)
     .catch(error => res.send({ status: 400, error }))
 })
 
+// not testable TODO: handle errors on api side
 router.post('/:id/background', authenticate, upload.single('background'), (req, res) => {
   updateUserStyle(req.user, 'background', req.file)
     .catch(error => res.send({ status: 400, error }))
@@ -141,12 +145,14 @@ router.post('/logout', authenticate, (req, res) => {
     .catch(() => res.status(400).send())
 })
 
+// tested
 router.post('/me/verify', authenticate, (req, res) => {
   req.user.requestVerification()
     .then(() => res.send({status: 200}))
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
+// tested
 router.get('/verify/:token', (req, res) => {
   const token = req.params.token
 
