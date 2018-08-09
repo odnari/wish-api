@@ -3,7 +3,8 @@
   "version": "0.2.1",
   "private": true,
   "scripts": {
-    "start": "nodemon ./app.js"
+    "start": "nodemon ./app.js",
+    "test": "export MONGODB_URI=mongodb://mongodb:27017/WishAppTest || SET NODE_ENV=test && jest"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -22,10 +23,18 @@
     "validator": "^10.4.0"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "expect": "^23.4.0",
+    "jest": "^23.4.2",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.3",
     "standard": "^11.0.1",
+    "superagent": "^3.8.3",
     "supertest": "^3.1.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFiles": ["./tests/setupEnv.js"]
   }
 }

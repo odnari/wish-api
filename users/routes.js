@@ -9,8 +9,7 @@ const {upload} = require('./../middleware/upload')
 const {getGoogleUser, getFacebookUser, socialize, SOCIALIZATIONS} = require('./social')
 
 const authFlow = (user, res) => (
-  user
-    .then(() => user.authenticate())
+  user.authenticate()
     .then(token => res.header('X-Authorization', token).send(user.toJSON()))
 )
 
@@ -31,10 +30,15 @@ const updateUserStyle = (user, prop, file) => {
 
 router.post('/', (req, res) => {
   const {email, password, name} = req.body
-  const user = new User({email, password, name})
 
-  createUserFlow(user, res)
-    .catch(error => res.send({status: 400, error: error.message}))
+  bcrypt.genSalt(10, (_, salt) => {
+    bcrypt.hash(password, salt, (_, hash) => {
+      const user = new User({email, password: hash, name})
+
+      createUserFlow(user, res)
+        .catch(error => res.send({status: 400, error: error.message}))
+    })
+  })
 })
 
 router.post('/google', (req, res) => {
