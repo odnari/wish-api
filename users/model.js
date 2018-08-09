@@ -156,6 +156,40 @@ UserSchema.methods.requestVerification = function () {
   return this.save().then(() => mailHelper.sendEmailVerificationMail(this.email, {token}))
 }
 
+UserSchema.methods.removeToken = function (token) {
+  return this.update({
+    $pull: {
+      tokens: { token }
+    }
+  })
+}
+
+UserSchema.statics.verifyByToken = function (token) {
+  this.findByToken(token)
+    .then((user) => {
+      if (!user) throw new Error('User not found')
+
+      return user.update({
+        $set: {
+          verified: true
+        },
+        $pull: {
+          tokens: { token }
+        }
+      }, { new: true })
+    })
+}
+
+UserSchema.methods.updateStyle = function (prop, filePath) {
+  this.style[prop] = filePath
+  return this.save()
+    .then(user => {
+      if (!user) throw new Error('Not found')
+
+      return user.toJSON()
+    })
+}
+
 const User = mongoose.model('User', UserSchema)
 
 module.exports = {User}
