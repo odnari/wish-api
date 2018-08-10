@@ -9,6 +9,67 @@ const urlPrefix = '/api/users'
 jest.mock('./../mail/helper', () => ({
   sendEmailVerificationMail: (to, { token }) => Promise.resolve()
 }))
+jest.mock('./social')
+
+const mockNewGoogleUser = {
+  email: 'google@example.com',
+  verified: false,
+  password: 'password',
+  name: 'Google',
+  social: {
+    google: '3213454654765765'
+  }
+}
+
+const mockExistingGoogleUser = {
+  email: users[0].email,
+  verified: false,
+  password: 'password',
+  name: 'Google',
+  social: {
+    google: '3213454654765344'
+  }
+}
+
+const mockExistingGoogleUserVerified = {
+  email: users[1].email,
+  verified: true,
+  password: 'password',
+  name: 'Google',
+  social: {
+    google: '32134546547678678'
+  }
+}
+
+const mockNewFacebookUser = {
+  email: 'facebook@example.com',
+  verified: false,
+  password: 'password',
+  name: 'Facebook',
+  social: {
+    facebook: '3213454654765765'
+  }
+}
+
+const mockExistingFacebookUser = {
+  email: users[0].email,
+  verified: false,
+  password: 'password',
+  name: 'Facebook',
+  social: {
+    facebook: '3213454654765344'
+  }
+}
+
+const mockExistingFacebookUserVerified = {
+  email: users[1].email,
+  verified: true,
+  password: 'password',
+  name: 'Facebook',
+  social: {
+    facebook: '32134546547678678'
+  }
+}
 
 describe('users', () => {
   afterAll(() => {
@@ -322,6 +383,196 @@ describe('users', () => {
           expect(res.body.error.name).toBe('JsonWebTokenError')
         })
         .end((err) => done(err))
+    })
+  })
+
+  describe('[POST /google]: create or link google account', () => {
+    test('should create new user if no email match', (done) => {
+      const social = require('./social')
+      social.getGoogleUser.mockImplementation(() => Promise.resolve(mockNewGoogleUser))
+
+      request(app)
+        .post(`${urlPrefix}/google`)
+        .send({ token: 'token' })
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.email).toBe(mockNewGoogleUser.email)
+          expect(typeof res.headers['x-authorization']).toBe('string')
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          User
+            .findOne({email: mockNewGoogleUser.email})
+            .then((user) => {
+              expect(user).toBeTruthy()
+              expect(user.verified).toBe(mockNewGoogleUser.verified)
+              expect(user.password).not.toBe(mockNewGoogleUser.password)
+              expect(user.social.google).toBe(mockNewGoogleUser.social.google)
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+
+    test('should link to user with same email', (done) => {
+      const social = require('./social')
+      social.getGoogleUser.mockImplementation(() => Promise.resolve(mockExistingGoogleUser))
+
+      request(app)
+        .post(`${urlPrefix}/google`)
+        .send({ token: 'token' })
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.email).toBe(users[0].email)
+          expect(typeof res.headers['x-authorization']).toBe('string')
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          User
+            .findOne({email: users[0].email})
+            .then((user) => {
+              expect(user).toBeTruthy()
+              expect(user.verified).toBe(mockExistingGoogleUser.verified)
+              expect(user.password).not.toBe(mockExistingGoogleUser.password)
+              expect(user.social.google).toBe(mockExistingGoogleUser.social.google)
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+
+    test('should verify user if linked account is verified', (done) => {
+      const social = require('./social')
+      social.getGoogleUser.mockImplementation(() => Promise.resolve(mockExistingGoogleUserVerified))
+
+      request(app)
+        .post(`${urlPrefix}/google`)
+        .send({ token: 'token' })
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.email).toBe(users[1].email)
+          expect(typeof res.headers['x-authorization']).toBe('string')
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          User
+            .findOne({email: users[1].email})
+            .then((user) => {
+              expect(user).toBeTruthy()
+              expect(user.verified).toBe(mockExistingGoogleUserVerified.verified)
+              expect(user.password).not.toBe(mockExistingGoogleUserVerified.password)
+              expect(user.social.google).toBe(mockExistingGoogleUserVerified.social.google)
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+  })
+
+  describe('[POST /facebook]: create or link facebook account', () => {
+    test('should create new user if no email match', (done) => {
+      const social = require('./social')
+      social.getFacebookUser.mockImplementation(() => Promise.resolve(mockNewFacebookUser))
+
+      request(app)
+        .post(`${urlPrefix}/facebook`)
+        .send({ token: 'token' })
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.email).toBe(mockNewFacebookUser.email)
+          expect(typeof res.headers['x-authorization']).toBe('string')
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          User
+            .findOne({email: mockNewFacebookUser.email})
+            .then((user) => {
+              expect(user).toBeTruthy()
+              expect(user.verified).toBe(mockNewFacebookUser.verified)
+              expect(user.password).not.toBe(mockNewFacebookUser.password)
+              expect(user.social.facebook).toBe(mockNewFacebookUser.social.facebook)
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+
+    test('should link to user with same email', (done) => {
+      const social = require('./social')
+      social.getFacebookUser.mockImplementation(() => Promise.resolve(mockExistingFacebookUser))
+
+      request(app)
+        .post(`${urlPrefix}/facebook`)
+        .send({ token: 'token' })
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.email).toBe(users[0].email)
+          expect(typeof res.headers['x-authorization']).toBe('string')
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          User
+            .findOne({email: users[0].email})
+            .then((user) => {
+              expect(user).toBeTruthy()
+              expect(user.verified).toBe(mockExistingFacebookUser.verified)
+              expect(user.password).not.toBe(mockExistingFacebookUser.password)
+              expect(user.social.facebook).toBe(mockExistingFacebookUser.social.facebook)
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+
+    test('should verify user if linked account is verified', (done) => {
+      const social = require('./social')
+      social.getFacebookUser.mockImplementation(() => Promise.resolve(mockExistingFacebookUserVerified))
+
+      request(app)
+        .post(`${urlPrefix}/facebook`)
+        .send({ token: 'token' })
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.email).toBe(users[1].email)
+          expect(typeof res.headers['x-authorization']).toBe('string')
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          User
+            .findOne({email: users[1].email})
+            .then((user) => {
+              expect(user).toBeTruthy()
+              expect(user.verified).toBe(mockExistingFacebookUserVerified.verified)
+              expect(user.password).not.toBe(mockExistingFacebookUserVerified.password)
+              expect(user.social.facebook).toBe(mockExistingFacebookUserVerified.social.facebook)
+              done()
+            })
+            .catch((e) => done(e))
+        })
     })
   })
 })

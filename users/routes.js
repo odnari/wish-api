@@ -119,7 +119,7 @@ router.post('/google', (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
-// not testable
+// tested
 router.post('/facebook', (req, res) => {
   const {accessToken: token} = req.body
 
