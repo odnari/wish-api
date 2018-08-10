@@ -6,7 +6,7 @@ const pick = require('lodash/pick')
 const {User} = require('./model')
 const {authenticate, authenticatedOrGuest} = require('./../middleware/authenticate')
 const {upload} = require('./../middleware/upload')
-const {getGoogleUser, getFacebookUser, socialize, SOCIALIZATIONS} = require('./social')
+const {getGoogleUser, getFacebookUser, SOCIALIZATIONS} = require('./social')
 
 const authFlow = (user, res) => (
   user.authenticate()
@@ -109,12 +109,12 @@ router.post('/', (req, res) => {
   })
 })
 
-// not testable
+// tested
 router.post('/google', (req, res) => {
   const {token} = req.body
 
   getGoogleUser(token)
-    .then(userInfo => socialize(userInfo, SOCIALIZATIONS.google))
+    .then(userInfo => User.socialize(userInfo, SOCIALIZATIONS.google))
     .then(user => createUserFlow(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })
@@ -124,7 +124,7 @@ router.post('/facebook', (req, res) => {
   const {accessToken: token} = req.body
 
   getFacebookUser(token)
-    .then(userInfo => socialize(userInfo, SOCIALIZATIONS.facebook))
+    .then(userInfo => User.socialize(userInfo, SOCIALIZATIONS.facebook))
     .then(user => createUserFlow(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })

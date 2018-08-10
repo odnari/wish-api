@@ -1,6 +1,5 @@
 const {OAuth2Client} = require('google-auth-library')
 const https = require('https')
-const {User} = require('./model')
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
 
 const SOCIALIZATIONS = {
@@ -64,23 +63,8 @@ const getFacebookUser = (token) => {
     }))
 }
 
-const socialize = (userInfo, socialization) => (
-  User.findOne({email: userInfo.email})
-    .then(user => {
-      if (!user) return Promise.reject(new Error('User not found'))
-
-      user.social[socialization] = userInfo.social[socialization]
-      if (!user.verified) user.verified = userInfo.verified
-      if (!user.name && userInfo.name) user.name = userInfo.name
-
-      return user
-    })
-    .catch(() => new User(userInfo))
-)
-
 module.exports = {
   getGoogleUser,
   getFacebookUser,
-  socialize,
   SOCIALIZATIONS
 }

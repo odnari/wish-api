@@ -177,6 +177,41 @@ UserSchema.statics.verifyByToken = function (token) {
     })
 }
 
+UserSchema.statics.socialize = function (userInfo, socialization) {
+  const User = this
+
+  const hashPass = (user) => {
+    return new Promise((resolve) => {
+      bcrypt.genSalt(10, (_, salt) => {
+        bcrypt.hash(user.password, salt, (_, hash) => {
+          const hashUser = {
+            ...user,
+            password: hash
+          }
+
+          resolve(hashUser)
+        })
+      })
+    })
+  }
+
+  return hashPass(userInfo)
+    .then(userSec => {
+      return User.findOne({email: userSec.email})
+        .then(user => {
+          if (!user) return Promise.reject(new Error('User not found'))
+
+          user.social[socialization] = userSec.social[socialization]
+          if (!user.verified) user.verified = userSec.verified
+          if (!user.name && userSec.name) user.name = userSec.name
+          if (!user.password && userSec.password) user.password = userSec.password
+
+          return user
+        })
+        .catch(() => new User(userSec))
+    })
+}
+
 UserSchema.methods.updateStyle = function (prop, filePath) {
   this.style[prop] = filePath
   return this.save()
