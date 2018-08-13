@@ -2,7 +2,6 @@
 const request = require('supertest')
 const app = require('../app')
 const { User } = require('./model')
-const { mongoose } = require('./../db/mongoose')
 const { populateUsers, users } = require('./../tests/seed')
 const urlPrefix = '/api/users'
 
@@ -72,10 +71,6 @@ const mockExistingFacebookUserVerified = {
 }
 
 describe('users', () => {
-  afterAll(() => {
-    mongoose.connection.close()
-  })
-
   beforeEach(populateUsers)
 
   describe('[POST /]: create', () => {

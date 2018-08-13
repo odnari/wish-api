@@ -35,6 +35,7 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": ["./tests/setupEnv.js"]
+    "setupFiles": ["./tests/setupEnv.js"],
+    "setupTestFrameworkScriptFile": "./tests/setup.js"
   }
 }
