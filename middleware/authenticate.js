@@ -11,7 +11,7 @@ const authenticate = (req, res, next) => {
       req.token = token
       next()
     })
-    .catch(error => res.send({status: 403, error}))
+    .catch(error => res.send({status: 403, error: error}))
 }
 
 const authenticatedOrGuest = (req, res, next) => {

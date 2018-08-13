@@ -80,6 +80,7 @@ router.get('/:id', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.post('/', authenticate, (req, res) => {
   const body = pick(req.body, defaults.bodyFields)
   body._creator = req.user._id
@@ -98,6 +99,7 @@ router.post('/', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.patch('/:id', authenticate, (req, res) => {
   const id = req.params.id
   const body = pick(req.body, defaults.bodyFields)
