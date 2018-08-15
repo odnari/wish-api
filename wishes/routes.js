@@ -174,12 +174,18 @@ router.post('/:id/reserve', authenticate, (req, res) => {
     reservedByName: req.body.name
   }
 
-  if (body.reservedBy === req.user._id.toHexString()) {
-    return res.send({status: 503, error: 'Not permitted'})
-  }
+  Wish.findById(id)
+    .then((wish) => {
+      if (!wish) return res.send({ status: 404, error: 'Not found' })
 
-  findByIdAndUpdateWith(id, body)
-    .then(responseObject => res.send(responseObject))
+      if (wish._creator.toHexString() === req.user._id.toHexString()) {
+        return res.send({ status: 503, error: 'No access' })
+      }
+
+      return findByIdAndUpdateWith(id, body)
+        .then(responseObject => res.send(responseObject))
+    })
+    .catch(error => res.send({ status: 400, error }))
 })
 
 router.delete('/:id/reserve', authenticate, (req, res) => {

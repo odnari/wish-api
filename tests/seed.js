@@ -37,6 +37,7 @@ const users = [
 const wishId1 = new ObjectID()
 const wishId2 = new ObjectID()
 const wishId3 = new ObjectID()
+const wishId4 = new ObjectID()
 
 const wishes = [
   {
@@ -59,6 +60,15 @@ const wishes = [
     description: 'desc one',
     _creator: userTwoId,
     creatorName: 'creator one'
+  },
+  {
+    _id: wishId4,
+    title: 'title one',
+    description: 'desc one',
+    _creator: userOneId,
+    creatorName: 'creator one',
+    reserved: true,
+    reservedBy: userTwoId
   }
 ]
 
