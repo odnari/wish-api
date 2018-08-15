@@ -124,6 +124,7 @@ router.patch('/:id', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.post('/:id/complete', authenticate, (req, res) => {
   const id = req.params.id
   const body = pick(req.body, [
@@ -145,6 +146,7 @@ router.post('/:id/complete', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.delete('/:id/complete', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
@@ -166,6 +168,7 @@ router.delete('/:id/complete', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.post('/:id/reserve', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
@@ -188,6 +191,7 @@ router.post('/:id/reserve', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.delete('/:id/reserve', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
@@ -210,6 +214,7 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.delete('/:id', authenticate, (req, res) => {
   const id = req.params.id
 
@@ -230,7 +235,7 @@ router.delete('/:id', authenticate, (req, res) => {
         .then(note => {
           if (!note) res.send({status: 404, error: 'Not found'})
 
-          res.send()
+          res.send(note)
         })
         .catch(error => res.send({status: 400, error}))
     })

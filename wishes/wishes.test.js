@@ -100,6 +100,57 @@ describe('wishes', () => {
     })
   })
 
+  describe('[DELETE /:id]: soft delete', () => {
+    test('should mark wish as deleted', (done) => {
+      request(app)
+        .delete(`${urlPrefix}/${wishes[0]._id}`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.deleted).toBeTruthy()
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          Wish
+            .findById(wishes[0]._id)
+            .then((wish) => {
+              expect(wish).toBeTruthy()
+              expect(wish.deleted).toBeTruthy()
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+
+    test('should not mark wish as deleted if other user requested', (done) => {
+      request(app)
+        .delete(`${urlPrefix}/${wishes[1]._id}`)
+        .set('x-authorization', users[1].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(503)
+        })
+        .end((err) => {
+          if (err) {
+            return done(err)
+          }
+
+          Wish
+            .findById(wishes[1]._id)
+            .then((wish) => {
+              expect(wish).toBeTruthy()
+              expect(wish.deleted).toBeFalsy()
+              done()
+            })
+            .catch((e) => done(e))
+        })
+    })
+  })
+
   describe('[POST /:id/complete]: complete', () => {
     test('should complete wish with reason', (done) => {
       const mockWish = {
