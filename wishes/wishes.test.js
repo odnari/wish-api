@@ -382,4 +382,42 @@ describe('wishes', () => {
         .end(done)
     })
   })
+
+  describe('[GET /:id]: get single wish', () => {
+    test('should get wish', (done) => {
+      request(app)
+        .get(`${urlPrefix}/${wishes[0]._id}`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.title).toBe(wishes[0].title)
+        })
+        .end(done)
+    })
+
+    test('should return 404 if no wish', (done) => {
+      request(app)
+        .get(`${urlPrefix}/a${wishes[0]._id.toHexString().slice(1)}`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(404)
+        })
+        .end(done)
+    })
+
+    test('should return 503 if id is invalid', (done) => {
+      request(app)
+        .get(`${urlPrefix}/banana`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(503)
+        })
+        .end(done)
+    })
+  })
 })

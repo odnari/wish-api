@@ -63,6 +63,7 @@ router.get('/user/:id', authenticatedOrGuest, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
+// tested
 router.get('/:id', authenticate, (req, res) => {
   const id = req.params.id
 
@@ -73,9 +74,9 @@ router.get('/:id', authenticate, (req, res) => {
   Wish
     .findById(id)
     .then(note => {
-      if (!note) res.send({ status: 404, error: 'Not found' })
+      if (!note) return res.send({ status: 404, error: 'Not found' })
 
-      res.send(note)
+      return res.send(note)
     })
     .catch(error => res.send({ status: 400, error }))
 })
