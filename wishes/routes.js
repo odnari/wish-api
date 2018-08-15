@@ -56,14 +56,13 @@ router.get('/user/:id', authenticatedOrGuest, (req, res) => {
     .find({ _creator: userId, deleted: false }, defaults.listVisibleFields)
     .sort({createdAt: -1})
     .then(notes => {
-      if (!notes) res.send({ status: 404, error: 'Not found' })
+      if (!notes) return res.send({ status: 404, error: 'Not found' })
 
-      res.send(notes)
+      return res.send(notes)
     })
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.get('/:id', authenticate, (req, res) => {
   const id = req.params.id
 
@@ -81,7 +80,6 @@ router.get('/:id', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.post('/', authenticate, (req, res) => {
   const body = pick(req.body, defaults.bodyFields)
   body._creator = req.user._id
@@ -100,7 +98,6 @@ router.post('/', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.patch('/:id', authenticate, (req, res) => {
   const id = req.params.id
   const body = pick(req.body, defaults.bodyFields)
@@ -125,7 +122,6 @@ router.patch('/:id', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.post('/:id/complete', authenticate, (req, res) => {
   const id = req.params.id
   const body = pick(req.body, [
@@ -147,7 +143,6 @@ router.post('/:id/complete', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.delete('/:id/complete', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
@@ -169,7 +164,6 @@ router.delete('/:id/complete', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.post('/:id/reserve', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
@@ -192,7 +186,6 @@ router.post('/:id/reserve', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.delete('/:id/reserve', authenticate, (req, res) => {
   const id = req.params.id
   const body = {
@@ -215,7 +208,6 @@ router.delete('/:id/reserve', authenticate, (req, res) => {
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
 router.delete('/:id', authenticate, (req, res) => {
   const id = req.params.id
 

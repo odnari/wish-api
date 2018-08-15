@@ -52,6 +52,139 @@ describe('wishes', () => {
     })
   })
 
+  describe('[GET /]: get current users\'s wishlist', () => {
+    test('should get only current user\'s wishlist', (done) => {
+      const userOneList = wishes.filter(w => w._creator === users[0]._id)
+
+      request(app)
+        .get(urlPrefix)
+        .set('x-authorization', users[0].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body).toBe('object')
+          res.body.map(w => {
+            expect(userOneList.findIndex(uw => uw._id.toHexString() === w._id)).not.toBe(-1)
+          })
+        })
+        .end(done)
+    })
+  })
+
+  describe('[GET /:id]: get wishlist', () => {
+    test('should get wishlist by user id', (done) => {
+      const userOneList = wishes.filter(w => w._creator === users[0]._id)
+
+      request(app)
+        .get(`${urlPrefix}/user/${users[0]._id.toHexString()}`)
+        .set('x-authorization', users[1].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body).toBe('object')
+          res.body.map(w => {
+            expect(userOneList.findIndex(uw => uw._id.toHexString() === w._id)).not.toBe(-1)
+          })
+        })
+        .end(done)
+    })
+
+    test('should return empty array if no wishes', (done) => {
+      request(app)
+        .get(`${urlPrefix}/user/a${users[0]._id.toHexString().slice(1)}`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body).toBe('object')
+          expect(res.body.length).toBe(0)
+        })
+        .end(done)
+    })
+
+    test('should return 503 if id is invalid', (done) => {
+      request(app)
+        .get(`${urlPrefix}/banana`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(503)
+        })
+        .end(done)
+    })
+  })
+
+  describe('[GET /reserved]: get current users\'s reserved items', () => {
+    test('should get only current user\'s reserved items', (done) => {
+      const userTwoList = wishes.filter(w => w.reservedBy === users[1]._id)
+
+      request(app)
+        .get(`${urlPrefix}/reserved`)
+        .set('x-authorization', users[1].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body).toBe('object')
+          res.body.map(w => {
+            expect(userTwoList.findIndex(uw => uw._id.toHexString() === w._id)).not.toBe(-1)
+          })
+        })
+        .end(done)
+    })
+
+    test('should not get other user\'s reserved items', (done) => {
+      const userTwoList = wishes.filter(w => w.reservedBy === users[1]._id)
+
+      request(app)
+        .get(`${urlPrefix}/reserved`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body).toBe('object')
+          res.body.map(w => {
+            expect(userTwoList.findIndex(uw => uw._id.toHexString() === w._id)).not.toBe(-1)
+          })
+        })
+        .end(done)
+    })
+  })
+
+  describe('[GET /:id]: get single wish', () => {
+    test('should get wish', (done) => {
+      request(app)
+        .get(`${urlPrefix}/${wishes[0]._id}`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .expect(200)
+        .expect((res) => {
+          expect(typeof res.body._id).toBe('string')
+          expect(res.body.title).toBe(wishes[0].title)
+        })
+        .end(done)
+    })
+
+    test('should return 404 if no wish', (done) => {
+      request(app)
+        .get(`${urlPrefix}/a${wishes[0]._id.toHexString().slice(1)}`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(404)
+        })
+        .end(done)
+    })
+
+    test('should return 503 if id is invalid', (done) => {
+      request(app)
+        .get(`${urlPrefix}/banana`)
+        .set('x-authorization', users[0].tokens[0].token)
+        .send()
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(503)
+        })
+        .end(done)
+    })
+  })
+
   describe('[PATCH /:id]: update', () => {
     const mockWish = {
       title: 'title changed',
@@ -373,44 +506,6 @@ describe('wishes', () => {
     test('should not unreserve same user\'s wish', (done) => {
       request(app)
         .delete(`${urlPrefix}/${wishes[3]._id}/reserve`)
-        .set('x-authorization', users[0].tokens[0].token)
-        .send()
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.status).toBe(503)
-        })
-        .end(done)
-    })
-  })
-
-  describe('[GET /:id]: get single wish', () => {
-    test('should get wish', (done) => {
-      request(app)
-        .get(`${urlPrefix}/${wishes[0]._id}`)
-        .set('x-authorization', users[0].tokens[0].token)
-        .expect(200)
-        .expect((res) => {
-          expect(typeof res.body._id).toBe('string')
-          expect(res.body.title).toBe(wishes[0].title)
-        })
-        .end(done)
-    })
-
-    test('should return 404 if no wish', (done) => {
-      request(app)
-        .get(`${urlPrefix}/a${wishes[0]._id.toHexString().slice(1)}`)
-        .set('x-authorization', users[0].tokens[0].token)
-        .send()
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.status).toBe(404)
-        })
-        .end(done)
-    })
-
-    test('should return 503 if id is invalid', (done) => {
-      request(app)
-        .get(`${urlPrefix}/banana`)
         .set('x-authorization', users[0].tokens[0].token)
         .send()
         .expect(200)
