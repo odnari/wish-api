@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const {ObjectID} = require('mongodb')
+const { check, validationResult } = require('express-validator/check')
 const bcrypt = require('bcryptjs')
 const pick = require('lodash/pick')
 const {User} = require('./model')
@@ -28,12 +29,11 @@ const updateUserStyle = (user, prop, file) => {
   }
 }
 
-// tested
 router.get('/:id', authenticatedOrGuest, (req, res) => {
   const userId = req.params.id
 
   if (!ObjectID.isValid(userId)) {
-    return res.send({status: 503, error: 'Invalid id'})
+    return res.send({status: 422, error: 'Invalid id'})
   }
 
   User.findById(userId)
@@ -45,8 +45,18 @@ router.get('/:id', authenticatedOrGuest, (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
-// tested
-router.patch('/:id', authenticate, (req, res) => {
+router.patch('/:id', authenticate, [
+  check('email').optional({nullable: true}).isEmail().isLength({min: 3, max: 120}),
+  check('password').optional({nullable: true}).isString().isLength({min: 6, max: 128}),
+  check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120}),
+  check('description').optional({nullable: true}).isString().isLength({min: 3, max: 240}),
+  check('profiles').optional({nullable: true})
+], (req, res) => {
+  const validationErrors = validationResult(req)
+  if (!validationErrors.isEmpty()) {
+    return res.send({ status: 422, error: validationErrors.array() })
+  }
+
   const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
 
   Object.keys(body).forEach(key => {
@@ -83,20 +93,25 @@ router.patch('/:id', authenticate, (req, res) => {
   }
 })
 
-// not testable TODO: handle errors on api side
 router.post('/:id/avatar', authenticate, upload.single('avatar'), (req, res) => {
   updateUserStyle(req.user, 'avatar', req.file)
     .catch(error => res.send({ status: 400, error }))
 })
 
-// not testable TODO: handle errors on api side
 router.post('/:id/background', authenticate, upload.single('background'), (req, res) => {
   updateUserStyle(req.user, 'background', req.file)
     .catch(error => res.send({ status: 400, error }))
 })
 
-// tested
-router.post('/', (req, res) => {
+router.post('/', [
+  check('email').isEmail().isLength({min: 3, max: 120}),
+  check('password').isString().isLength({min: 6, max: 128}),
+  check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120})
+], (req, res) => {
+  const validationErrors = validationResult(req)
+  if (!validationErrors.isEmpty()) {
+    return res.send({ status: 422, error: validationErrors.array() })
+  }
   const {email, password, name} = req.body
 
   bcrypt.genSalt(10, (_, salt) => {
@@ -110,7 +125,13 @@ router.post('/', (req, res) => {
 })
 
 // tested
-router.post('/google', (req, res) => {
+router.post('/google', [
+  check('token').isString()
+], (req, res) => {
+  const validationErrors = validationResult(req)
+  if (!validationErrors.isEmpty()) {
+    return res.send({ status: 422, error: validationErrors.array() })
+  }
   const {token} = req.body
 
   getGoogleUser(token)
@@ -120,7 +141,13 @@ router.post('/google', (req, res) => {
 })
 
 // tested
-router.post('/facebook', (req, res) => {
+router.post('/facebook', [
+  check('accessToken').isString()
+], (req, res) => {
+  const validationErrors = validationResult(req)
+  if (!validationErrors.isEmpty()) {
+    return res.send({ status: 422, error: validationErrors.array() })
+  }
   const {accessToken: token} = req.body
 
   getFacebookUser(token)
@@ -130,7 +157,14 @@ router.post('/facebook', (req, res) => {
 })
 
 // tested
-router.post('/login', (req, res) => {
+router.post('/login', [
+  check('email').isEmail().isLength({min: 3, max: 120}),
+  check('password').isString().isLength({min: 6, max: 128}),
+], (req, res) => {
+  const validationErrors = validationResult(req)
+  if (!validationErrors.isEmpty()) {
+    return res.send({ status: 422, error: validationErrors.array() })
+  }
   const {email, password} = req.body
 
   User.findByCreds(email, password)

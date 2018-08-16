@@ -112,8 +112,8 @@ describe('users', () => {
         .send({email: 'inv', password: 'inv', name: 'Test'})
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(400)
-          expect(typeof res.body.error).toBe('string')
+          expect(res.body.status).toBe(422)
+          expect(typeof res.body.error).toBe('object')
         })
         .end((err) => {
           if (err) {
@@ -222,7 +222,7 @@ describe('users', () => {
         .get(`${urlPrefix}/69banana`)
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(422)
           expect(res.body.error).toBe('Invalid id')
         })
         .end((err) => done(err))
@@ -483,7 +483,7 @@ describe('users', () => {
 
       request(app)
         .post(`${urlPrefix}/facebook`)
-        .send({ token: 'token' })
+        .send({ accessToken: 'token' })
         .expect(200)
         .expect((res) => {
           expect(typeof res.body._id).toBe('string')
@@ -514,7 +514,7 @@ describe('users', () => {
 
       request(app)
         .post(`${urlPrefix}/facebook`)
-        .send({ token: 'token' })
+        .send({ accessToken: 'token' })
         .expect(200)
         .expect((res) => {
           expect(typeof res.body._id).toBe('string')
@@ -545,7 +545,7 @@ describe('users', () => {
 
       request(app)
         .post(`${urlPrefix}/facebook`)
-        .send({ token: 'token' })
+        .send({ accessToken: 'token' })
         .expect(200)
         .expect((res) => {
           expect(typeof res.body._id).toBe('string')
