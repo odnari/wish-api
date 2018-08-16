@@ -46,7 +46,7 @@ describe('wishes', () => {
         .send({description: 'ha, no title'})
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(400)
+          expect(res.body.status).toBe(422)
         })
         .end(done)
     })
@@ -100,14 +100,14 @@ describe('wishes', () => {
         .end(done)
     })
 
-    test('should return 503 if id is invalid', (done) => {
+    test('should return 422 if id is invalid', (done) => {
       request(app)
         .get(`${urlPrefix}/banana`)
         .set('x-authorization', users[0].tokens[0].token)
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(422)
         })
         .end(done)
     })
@@ -172,14 +172,14 @@ describe('wishes', () => {
         .end(done)
     })
 
-    test('should return 503 if id is invalid', (done) => {
+    test('should return 422 if id is invalid', (done) => {
       request(app)
         .get(`${urlPrefix}/banana`)
         .set('x-authorization', users[0].tokens[0].token)
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(422)
         })
         .end(done)
     })
@@ -227,7 +227,7 @@ describe('wishes', () => {
         .send(mockWish)
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(403)
         })
         .end(done)
     })
@@ -265,7 +265,7 @@ describe('wishes', () => {
         .set('x-authorization', users[1].tokens[0].token)
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(403)
         })
         .end((err) => {
           if (err) {
@@ -349,7 +349,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(403)
         })
         .end(done)
     })
@@ -390,7 +390,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(403)
         })
         .end(done)
     })
@@ -467,7 +467,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(403)
         })
         .end(done)
     })
@@ -510,7 +510,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(503)
+          expect(res.body.status).toBe(403)
         })
         .end(done)
     })

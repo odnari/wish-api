@@ -12,6 +12,7 @@
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "express-handlebars": "^3.0.0",
+    "express-validator": "^5.3.0",
     "google-auth-library": "^1.6.1",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
@@ -35,7 +36,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": ["./tests/setupEnv.js"],
+    "setupFiles": [
+      "./tests/setupEnv.js"
+    ],
     "setupTestFrameworkScriptFile": "./tests/setup.js"
   }
 }
