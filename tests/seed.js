@@ -2,7 +2,7 @@ const {ObjectID} = require('mongodb')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 
-const {User} = require('./../users/model')
+const User = require('./../users/model')
 const {Wish} = require('./../wishes/model')
 
 const userOneId = new ObjectID()
