@@ -1,24 +1,24 @@
 const express = require('express')
 const router = express.Router()
 const {ObjectID} = require('mongodb')
-const { check, validationResult } = require('express-validator/check')
-const bcrypt = require('bcryptjs')
+const { check } = require('express-validator/check')
 const pick = require('lodash/pick')
 const User = require('./model')
 const {authenticate, authenticatedOrGuest} = require('./../middleware/authenticate')
 const {upload} = require('./../middleware/upload')
+const validationErrorsHandler = require('../middleware/validationErrorsHandler')
+const validateId = require('../middleware/validateId')
 const {getGoogleUser, getFacebookUser, SOCIALIZATIONS} = require('./social')
 
-const authFlow = (user, res) => (
+const authenticateAndSendToken = (user, res) => (
   user.authenticate()
     .then(token => res.header('X-Authorization', token).send(user.toJSON()))
 )
 
-const createUserFlow = (user, res) => (
+const createAndLoginUser = (user, res) => (
   user
     .save()
-    .then(() => user.requestVerification())
-    .then(() => authFlow(user, res))
+    .then(() => authenticateAndSendToken(user, res))
 )
 
 const updateUserStyle = (user, prop, file) => {
@@ -29,12 +29,8 @@ const updateUserStyle = (user, prop, file) => {
   }
 }
 
-router.get('/:id', authenticatedOrGuest, (req, res) => {
+router.get('/:id', validateId, authenticatedOrGuest, (req, res) => {
   const userId = req.params.id
-
-  if (!ObjectID.isValid(userId)) {
-    return res.send({status: 422, error: 'Invalid id'})
-  }
 
   User.findById(userId)
     .then(user => {
@@ -45,18 +41,13 @@ router.get('/:id', authenticatedOrGuest, (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
-router.patch('/:id', authenticate, [
+router.patch('/:id', validateId, authenticate, [
   check('email').optional({nullable: true}).isEmail().isLength({min: 3, max: 120}),
   check('password').optional({nullable: true}).isString().isLength({min: 6, max: 128}),
   check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120}),
   check('description').optional({nullable: true}).isString().isLength({min: 3, max: 240}),
   check('profiles').optional({nullable: true})
-], (req, res) => {
-  const validationErrors = validationResult(req)
-  if (!validationErrors.isEmpty()) {
-    return res.send({ status: 422, error: validationErrors.array() })
-  }
-
+], validationErrorsHandler, (req, res) => {
   const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
 
   Object.keys(body).forEach(key => {
@@ -65,40 +56,30 @@ router.patch('/:id', authenticate, [
     }
   })
 
-  if (!ObjectID.isValid(req.params.id) || (req.user._id.toHexString() !== req.params.id)) {
+  if (req.user._id.toHexString() !== req.params.id) {
     return res.send({status: 403, error: 'No access'})
   }
 
-  if (!body.password) {
-    User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-      .then(user => {
-        if (!user) return { status: 404, error: 'Not found' }
-
-        return res.send(user.toJSON())
-      })
-      .catch(error => ({ status: 400, error }))
-  } else {
-    bcrypt.genSalt(10, (_, salt) => {
-      bcrypt.hash(body.password, salt, (_, hash) => {
-        body.password = hash
-        User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
-          .then(user => {
-            if (!user) return { status: 404, error: 'Not found' }
-
-            return res.send(user.toJSON())
-          })
-          .catch(error => ({ status: 400, error }))
-      })
+  User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
+    .then(user => {
+      if (body.password) {
+        // todo: salt before saving (what if db will shutdown after save and before salt?)
+        return user.saltPassword()
+      } else {
+        return user
+      }
     })
-  }
+    .then(user => user.toJSON())
+    .then(jsonUser => res.send(jsonUser))
+    .catch(error => ({ status: 400, error }))
 })
 
-router.post('/:id/avatar', authenticate, upload.single('avatar'), (req, res) => {
+router.post('/:id/avatar', validateId, authenticate, upload.single('avatar'), (req, res) => {
   updateUserStyle(req.user, 'avatar', req.file)
     .catch(error => res.send({ status: 400, error }))
 })
 
-router.post('/:id/background', authenticate, upload.single('background'), (req, res) => {
+router.post('/:id/background', validateId, authenticate, upload.single('background'), (req, res) => {
   updateUserStyle(req.user, 'background', req.file)
     .catch(error => res.send({ status: 400, error }))
 })
@@ -107,68 +88,49 @@ router.post('/', [
   check('email').isEmail().isLength({min: 3, max: 120}),
   check('password').isString().isLength({min: 6, max: 128}),
   check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120})
-], (req, res) => {
-  const validationErrors = validationResult(req)
-  if (!validationErrors.isEmpty()) {
-    return res.send({ status: 422, error: validationErrors.array() })
-  }
+], validationErrorsHandler, (req, res) => {
   const {email, password, name} = req.body
-
-  bcrypt.genSalt(10, (_, salt) => {
-    bcrypt.hash(password, salt, (_, hash) => {
-      const user = new User({email, password: hash, name})
-
-      createUserFlow(user, res)
-        .catch(error => res.send({status: 400, error: error.message}))
-    })
-  })
+  User.saltPassword(password)
+    .then(salted => new User({email, password: salted, name}))
+    .then(user => user.save().then(() => user))
+    .then(user => user.requestVerification().then(() => user))
+    .then(user => authenticateAndSendToken(user, res))
+    .catch(error => res.send({status: 400, error: error.message}))
 })
 
 // tested
 router.post('/google', [
   check('token').isString()
-], (req, res) => {
-  const validationErrors = validationResult(req)
-  if (!validationErrors.isEmpty()) {
-    return res.send({ status: 422, error: validationErrors.array() })
-  }
+], validationErrorsHandler, (req, res) => {
   const {token} = req.body
 
   getGoogleUser(token)
     .then(userInfo => User.socialize(userInfo, SOCIALIZATIONS.google))
-    .then(user => createUserFlow(user, res))
+    .then(user => createAndLoginUser(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
 // tested
 router.post('/facebook', [
   check('accessToken').isString()
-], (req, res) => {
-  const validationErrors = validationResult(req)
-  if (!validationErrors.isEmpty()) {
-    return res.send({ status: 422, error: validationErrors.array() })
-  }
+], validationErrorsHandler, (req, res) => {
   const {accessToken: token} = req.body
 
   getFacebookUser(token)
     .then(userInfo => User.socialize(userInfo, SOCIALIZATIONS.facebook))
-    .then(user => createUserFlow(user, res))
+    .then(user => createAndLoginUser(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
 // tested
 router.post('/login', [
   check('email').isEmail().isLength({min: 3, max: 120}),
-  check('password').isString().isLength({min: 6, max: 128}),
-], (req, res) => {
-  const validationErrors = validationResult(req)
-  if (!validationErrors.isEmpty()) {
-    return res.send({ status: 422, error: validationErrors.array() })
-  }
+  check('password').isString().isLength({min: 6, max: 128})
+], validationErrorsHandler, (req, res) => {
   const {email, password} = req.body
 
   User.findByCreds(email, password)
-    .then(user => authFlow(user, res))
+    .then(user => authenticateAndSendToken(user, res))
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
@@ -191,7 +153,7 @@ router.get('/verify/:token', (req, res) => {
   const token = req.params.token
 
   User.verifyByToken(token)
-    .then(user => authFlow(user, res))
+    .then(user => authenticateAndSendToken(user, res))
     .catch(error => res.send({status: 403, error}))
 })
 

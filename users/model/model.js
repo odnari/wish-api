@@ -5,6 +5,7 @@ const pick = require('lodash/pick')
 const pullAllBy = require('lodash/pullAllBy')
 const mailHelper = require('./../../mail/helper')
 const UserSchema = require('./schema')
+const saltPassword = require('./../utils/saltPassword')
 
 UserSchema.methods.toJSON = function (isPublic) {
   let fields = ['_id', 'verified', 'name', 'profiles', 'description', 'style']
@@ -14,6 +15,17 @@ UserSchema.methods.toJSON = function (isPublic) {
   }
 
   return pick(this, fields)
+}
+
+UserSchema.statics.saltPassword = saltPassword
+UserSchema.methods.saltPassword = function () {
+  const user = this
+
+  return saltPassword(user.password)
+    .then((salted) => {
+      user.password = salted
+      return user.save().then(() => user)
+    })
 }
 
 UserSchema.methods.authenticate = function () {
@@ -84,7 +96,7 @@ UserSchema.methods.requestVerification = function () {
 UserSchema.methods.removeToken = function (token) {
   return this.update({
     $pull: {
-      tokens: { token }
+      tokens: {token}
     }
   }, {multi: true})
 }
@@ -104,22 +116,13 @@ UserSchema.statics.verifyByToken = function (token) {
 UserSchema.statics.socialize = function (userInfo, socialization) {
   const User = this
 
-  const hashPass = (user) => {
-    return new Promise((resolve) => {
-      bcrypt.genSalt(10, (_, salt) => {
-        bcrypt.hash(user.password, salt, (_, hash) => {
-          const hashUser = {
-            ...user,
-            password: hash
-          }
-
-          resolve(hashUser)
-        })
-      })
+  return saltPassword(userInfo.password)
+    .then(salted => {
+      return {
+        ...userInfo,
+        password: salted
+      }
     })
-  }
-
-  return hashPass(userInfo)
     .then(userSec => {
       return User.findOne({email: userSec.email})
         .then(user => {
