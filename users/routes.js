@@ -1,14 +1,10 @@
 const express = require('express')
 const router = express.Router()
-const {ObjectID} = require('mongodb')
-const { check } = require('express-validator/check')
 const pick = require('lodash/pick')
 const User = require('./model')
-const {authenticate, authenticatedOrGuest} = require('./../middleware/authenticate')
-const {upload} = require('./../middleware/upload')
-const validationErrorsHandler = require('../middleware/validationErrorsHandler')
-const validateId = require('../middleware/validateId')
 const {getGoogleUser, getFacebookUser, SOCIALIZATIONS} = require('./social')
+const {validateId, validationErrorsHandler, authenticate, authenticatedOrGuest, upload} = require('../middleware')
+const {validateCreate, validateUpdate, validateGoogle, validateFacebook, validateLogin} = require('./validators')
 
 const authenticateAndSendToken = (user, res) => (
   user.authenticate()
@@ -41,13 +37,7 @@ router.get('/:id', validateId, authenticatedOrGuest, (req, res) => {
     .catch(error => res.send({status: 400, error: error.message}))
 })
 
-router.patch('/:id', validateId, authenticate, [
-  check('email').optional({nullable: true}).isEmail().isLength({min: 3, max: 120}),
-  check('password').optional({nullable: true}).isString().isLength({min: 6, max: 128}),
-  check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120}),
-  check('description').optional({nullable: true}).isString().isLength({min: 3, max: 240}),
-  check('profiles').optional({nullable: true})
-], validationErrorsHandler, (req, res) => {
+router.patch('/:id', validateId, authenticate, validateUpdate, validationErrorsHandler, (req, res) => {
   const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
 
   Object.keys(body).forEach(key => {
@@ -84,11 +74,7 @@ router.post('/:id/background', validateId, authenticate, upload.single('backgrou
     .catch(error => res.send({ status: 400, error }))
 })
 
-router.post('/', [
-  check('email').isEmail().isLength({min: 3, max: 120}),
-  check('password').isString().isLength({min: 6, max: 128}),
-  check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120})
-], validationErrorsHandler, (req, res) => {
+router.post('/', validateCreate, validationErrorsHandler, (req, res) => {
   const {email, password, name} = req.body
   User.saltPassword(password)
     .then(salted => new User({email, password: salted, name}))
@@ -99,9 +85,7 @@ router.post('/', [
 })
 
 // tested
-router.post('/google', [
-  check('token').isString()
-], validationErrorsHandler, (req, res) => {
+router.post('/google', validateGoogle, validationErrorsHandler, (req, res) => {
   const {token} = req.body
 
   getGoogleUser(token)
@@ -111,9 +95,7 @@ router.post('/google', [
 })
 
 // tested
-router.post('/facebook', [
-  check('accessToken').isString()
-], validationErrorsHandler, (req, res) => {
+router.post('/facebook', validateFacebook, validationErrorsHandler, (req, res) => {
   const {accessToken: token} = req.body
 
   getFacebookUser(token)
@@ -123,10 +105,7 @@ router.post('/facebook', [
 })
 
 // tested
-router.post('/login', [
-  check('email').isEmail().isLength({min: 3, max: 120}),
-  check('password').isString().isLength({min: 6, max: 128})
-], validationErrorsHandler, (req, res) => {
+router.post('/login', validateLogin, validationErrorsHandler, (req, res) => {
   const {email, password} = req.body
 
   User.findByCreds(email, password)

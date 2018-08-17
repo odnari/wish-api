@@ -5,7 +5,7 @@ const bodyParser = require('body-parser')
 const path = require('path')
 
 require('./db/mongoose')
-const {cors} = require('./middleware/cors')
+const cors = require('./middleware/cors')
 const {router: userRouter} = require('./users/routes')
 const {router: wishRouter} = require('./wishes/routes')
 
