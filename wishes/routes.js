@@ -2,7 +2,7 @@ const router = require('express').Router()
 const pick = require('lodash/pick')
 const { ObjectID } = require('mongodb')
 const { check, validationResult } = require('express-validator/check')
-const { Wish } = require('./model')
+const Wish = require('./model')
 const { authenticate, authenticatedOrGuest } = require('./../middleware/authenticate')
 const { defaults } = require('./constants')
 

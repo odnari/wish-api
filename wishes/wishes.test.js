@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 const request = require('supertest')
 const app = require('../app')
-const { Wish } = require('./model')
+const Wish = require('./model')
 const { populateUsers, populateWishes, users, wishes } = require('./../tests/seed')
 const urlPrefix = '/api/wishes'
 

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const validator = require('validator')
 
-const WishSchema = new mongoose.Schema({
+module.exports = new mongoose.Schema({
   title: {
     type: String,
     required: true,
@@ -71,7 +71,3 @@ const WishSchema = new mongoose.Schema({
     default: Date.now
   }
 })
-
-const Wish = mongoose.model('Wish', WishSchema)
-
-module.exports = {Wish}

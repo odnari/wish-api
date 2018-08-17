@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs')
 const pick = require('lodash/pick')
 const pullAllBy = require('lodash/pullAllBy')
 const mailHelper = require('./../../mail/helper')
-
 const UserSchema = require('./schema')
 
 UserSchema.methods.toJSON = function (isPublic) {
