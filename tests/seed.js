@@ -87,7 +87,7 @@ const seedUser = (seed) => {
 }
 
 const populateUsers = (done) => {
-  User.remove({}).then(() => {
+  User.deleteMany({}).then(() => {
     const userOne = seedUser(users[0])
     const userTwo = seedUser(users[1])
 
@@ -96,7 +96,7 @@ const populateUsers = (done) => {
 }
 
 const populateWishes = (done) => {
-  Wish.remove({}).then(() => {
+  Wish.deleteMany({}).then(() => {
     return Promise.all(wishes.map(w => {
       const wish = new Wish(w)
       return wish.save()
