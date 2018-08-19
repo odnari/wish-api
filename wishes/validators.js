@@ -24,9 +24,19 @@ const validateReserve = [
   check('name').optional({nullable: true}).isString().isLength({min: 2, max: 120})
 ]
 
+const isUserCreator = user => wish => {
+  return wish._creator.toHexString() === user._id.toHexString()
+}
+
+const isUserNotCreator = user => wish => {
+  return wish._creator.toHexString() !== user._id.toHexString()
+}
+
 module.exports = {
   validateUpdate,
   validateCreate,
   validateComplete,
-  validateReserve
+  validateReserve,
+  isUserCreator,
+  isUserNotCreator
 }

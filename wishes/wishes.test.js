@@ -227,7 +227,7 @@ describe('wishes', () => {
         .send(mockWish)
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(403)
+          expect(res.body.status).toBe(400)
         })
         .end(done)
     })
@@ -265,7 +265,7 @@ describe('wishes', () => {
         .set('x-authorization', users[1].tokens[0].token)
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(403)
+          expect(res.body.status).toBe(400)
         })
         .end((err) => {
           if (err) {
@@ -349,7 +349,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(403)
+          expect(res.body.status).toBe(400)
         })
         .end(done)
     })
@@ -390,7 +390,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(403)
+          expect(res.body.status).toBe(400)
         })
         .end(done)
     })
@@ -467,7 +467,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(403)
+          expect(res.body.status).toBe(400)
         })
         .end(done)
     })
@@ -510,7 +510,7 @@ describe('wishes', () => {
         .send()
         .expect(200)
         .expect((res) => {
-          expect(res.body.status).toBe(403)
+          expect(res.body.status).toBe(400)
         })
         .end(done)
     })

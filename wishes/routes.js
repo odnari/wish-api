@@ -3,19 +3,15 @@ const pick = require('lodash/pick')
 const { ObjectID } = require('mongodb')
 const Wish = require('./model')
 const { authenticatedOrGuest, authenticate, validateId, validationErrorsHandler } = require('./../middleware')
-const { validateCreate, validateUpdate, validateComplete, validateReserve } = require('./validators')
+const {
+  validateCreate,
+  validateUpdate,
+  validateComplete,
+  validateReserve,
+  isUserCreator,
+  isUserNotCreator
+} = require('./validators')
 const { defaults } = require('./constants')
-
-const findByIdAndUpdateWith = (id, body) => {
-  return Wish
-    .findByIdAndUpdate(id, {$set: body}, { new: true })
-    .then(note => {
-      if (!note) return { status: 404, error: 'Not found' }
-
-      return note
-    })
-    .catch(error => ({ status: 400, error }))
-}
 
 router.get('/', authenticate, (req, res) => {
   if (!ObjectID.isValid(req.user._id)) {
@@ -26,9 +22,9 @@ router.get('/', authenticate, (req, res) => {
     .find({ _creator: req.user._id, deleted: false }, defaults.listVisibleFields)
     .sort({createdAt: -1})
     .then(notes => {
-      if (!notes) res.send({ status: 404, error: 'Not found' })
+      if (!notes) return res.send({ status: 404, error: 'Not found' })
 
-      res.send(notes)
+      return res.send(notes)
     })
     .catch(error => res.send({ status: 400, error }))
 })
@@ -42,9 +38,9 @@ router.get('/reserved', authenticate, (req, res) => {
     .find({ reservedBy: req.user._id, deleted: false }, defaults.listVisibleFields)
     .sort({createdAt: -1})
     .then(notes => {
-      if (!notes) res.send({ status: 404, error: 'Not found' })
+      if (!notes) return res.send({ status: 404, error: 'Not found' })
 
-      res.send(notes)
+      return res.send(notes)
     })
     .catch(error => res.send({ status: 400, error }))
 })
@@ -64,10 +60,8 @@ router.get('/user/:id', validateId, authenticatedOrGuest, (req, res) => {
 })
 
 router.get('/:id', validateId, authenticate, (req, res) => {
-  const id = req.params.id
-
   Wish
-    .findById(id)
+    .findById(req.params.id)
     .then(note => {
       if (!note) return res.send({ status: 404, error: 'Not found' })
 
@@ -104,20 +98,9 @@ router.patch('/:id', authenticate, validateId, validateUpdate, validationErrorsH
     body.currency = null
   }
 
-  if (!ObjectID.isValid(id)) {
-    return res.send({ status: 422, error: 'Invalid id' })
-  }
-
-  Wish.findById(id)
-    .then((wish) => {
-      if (!wish) return res.send({ status: 404, error: 'Not found' })
-
-      if (wish._creator.toHexString() !== req.user._id.toHexString()) {
-        return res.send({ status: 403, error: 'No access' })
-      }
-
-      return findByIdAndUpdateWith(id, body)
-        .then(responseObject => res.send(responseObject))
+  Wish.updateByIdWithPredicate(isUserCreator(req.user), id, body)
+    .then(wish => {
+      res.send(wish)
     })
     .catch(error => res.send({ status: 400, error }))
 })
@@ -129,16 +112,9 @@ router.post('/:id/complete', validateId, authenticate, validateComplete, validat
   ])
   body.completed = true
 
-  Wish.findById(id)
-    .then((wish) => {
-      if (!wish) return res.send({ status: 404, error: 'Not found' })
-
-      if (wish._creator.toHexString() !== req.user._id.toHexString()) {
-        return res.send({ status: 403, error: 'No access' })
-      }
-
-      return findByIdAndUpdateWith(id, body)
-        .then(responseObject => res.send(responseObject))
+  Wish.updateByIdWithPredicate(isUserCreator(req.user), id, body)
+    .then(wish => {
+      res.send(wish)
     })
     .catch(error => res.send({ status: 400, error }))
 })
@@ -150,16 +126,9 @@ router.delete('/:id/complete', validateId, authenticate, (req, res) => {
     completedReason: null
   }
 
-  Wish.findById(id)
-    .then((wish) => {
-      if (!wish) return res.send({ status: 404, error: 'Not found' })
-
-      if (wish._creator.toHexString() !== req.user._id.toHexString()) {
-        return res.send({ status: 403, error: 'No access' })
-      }
-
-      return findByIdAndUpdateWith(id, body)
-        .then(responseObject => res.send(responseObject))
+  Wish.updateByIdWithPredicate(isUserCreator(req.user), id, body)
+    .then(wish => {
+      res.send(wish)
     })
     .catch(error => res.send({ status: 400, error }))
 })
@@ -172,16 +141,9 @@ router.post('/:id/reserve', validateId, authenticate, validateReserve, validatio
     reservedByName: req.body.name
   }
 
-  Wish.findById(id)
-    .then((wish) => {
-      if (!wish) return res.send({ status: 404, error: 'Not found' })
-
-      if (wish._creator.toHexString() === req.user._id.toHexString()) {
-        return res.send({ status: 403, error: 'No access' })
-      }
-
-      return findByIdAndUpdateWith(id, body)
-        .then(responseObject => res.send(responseObject))
+  Wish.updateByIdWithPredicate(isUserNotCreator(req.user), id, body)
+    .then(wish => {
+      res.send(wish)
     })
     .catch(error => res.send({ status: 400, error }))
 })
@@ -194,44 +156,24 @@ router.delete('/:id/reserve', validateId, authenticate, (req, res) => {
     reservedByName: null
   }
 
-  Wish.findById(id)
-    .then((note) => {
-      if (!note) return res.send({ status: 404, error: 'Not found' })
-
-      if (note.reservedBy.toHexString() !== req.user._id.toHexString()) {
-        return res.send({ status: 403, error: 'No access' })
-      }
-
-      return findByIdAndUpdateWith(id, body)
-        .then(responseObject => res.send(responseObject))
+  Wish.updateByIdWithPredicate(isUserNotCreator(req.user), id, body)
+    .then(wish => {
+      res.send(wish)
     })
     .catch(error => res.send({ status: 400, error }))
 })
 
 router.delete('/:id', validateId, authenticate, (req, res) => {
   const id = req.params.id
+  const body = {
+    deleted: true
+  }
 
-  Wish.findById(id)
-    .then((note) => {
-      if (!note) return res.send({status: 404, error: 'Not found'})
-
-      if (note._creator.toHexString() !== req.user._id.toHexString()) {
-        return res.send({status: 403, error: 'No access'})
-      }
-
-      return Wish
-        .findByIdAndUpdate(req.params.id, {
-          $set: {
-            deleted: true
-          }
-        }, {new: true})
-        .then(note => {
-          if (!note) res.send({status: 404, error: 'Not found'})
-
-          res.send(note)
-        })
-        .catch(error => res.send({status: 400, error}))
+  Wish.updateByIdWithPredicate(isUserCreator(req.user), id, body)
+    .then(wish => {
+      res.send(wish)
     })
+    .catch(error => res.send({ status: 400, error }))
 })
 
 module.exports = { router }
