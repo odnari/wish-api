@@ -24,6 +24,7 @@ upload:
  script:
    - ssh $CI_USER@$SERVER_IP sudo systemctl stop wishwish
    - rm -rf .git
+   - ssh -t $CI_USER@$SERVER_IP "rm -rf $HOST_PATH/*"
    - scp -rC ./ $CI_USER@$SERVER_IP:$HOST_PATH/
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; yarn"
    - ssh $CI_USER@$SERVER_IP sudo systemctl start wishwish
