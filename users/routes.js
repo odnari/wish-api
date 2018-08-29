@@ -21,7 +21,7 @@ const updateUserStyle = (user, prop, file) => {
   if (!file) {
     return Promise.reject(new Error('Image saving error'))
   } else {
-    return user.updateStyle(prop, file.path)
+    return user.updateStyle(prop, `${process.env.UPLOADS_PATH}/${file.filename}`)
   }
 }
 
