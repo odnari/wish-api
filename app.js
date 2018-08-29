@@ -20,6 +20,5 @@ app.use(cors)
 app.get('/', (req, res) => res.send(`${process.env.APP_NAME} API`))
 app.use('/api/users', userRouter)
 app.use('/api/wishes', wishRouter)
-app.use('/uploads/', express.static(path.join(__dirname, 'uploads')))
 
 module.exports = app
