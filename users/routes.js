@@ -66,11 +66,13 @@ router.patch('/:id', validateId, authenticate, validateUpdate, validationErrorsH
 
 router.post('/:id/avatar', validateId, authenticate, upload.single('avatar'), (req, res) => {
   updateUserStyle(req.user, 'avatar', req.file)
+    .then(user => res.send(user))
     .catch(error => res.send({ status: 400, error }))
 })
 
 router.post('/:id/background', validateId, authenticate, upload.single('background'), (req, res) => {
   updateUserStyle(req.user, 'background', req.file)
+    .then(user => res.send(user))
     .catch(error => res.send({ status: 400, error }))
 })
 
