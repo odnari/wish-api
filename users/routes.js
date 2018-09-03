@@ -25,10 +25,9 @@ const updateUserStyle = (user, prop, file) => {
   }
 }
 
-router.get('/:id', validateId, authenticatedOrGuest, (req, res) => {
-  const userId = req.params.id
+router.get('/:username', authenticatedOrGuest, (req, res) => {
 
-  User.findById(userId)
+  User.findOne({ username: req.params.username })
     .then(user => {
       if (!user) throw new Error('User not found')
 
@@ -38,7 +37,7 @@ router.get('/:id', validateId, authenticatedOrGuest, (req, res) => {
 })
 
 router.patch('/:id', validateId, authenticate, validateUpdate, validationErrorsHandler, (req, res) => {
-  const body = pick(req.body, ['email', 'password', 'name', 'description', 'profiles'])
+  const body = pick(req.body, ['email', 'password', 'name', 'username', 'description', 'profiles'])
 
   Object.keys(body).forEach(key => {
     if (body[key] instanceof String && !body[key].length) {

@@ -8,7 +8,7 @@ const UserSchema = require('./schema')
 const saltPassword = require('./../utils/saltPassword')
 
 UserSchema.methods.toJSON = function (isPublic) {
-  let fields = ['_id', 'verified', 'name', 'profiles', 'description', 'style']
+  let fields = ['_id', 'verified', 'name', 'username', 'profiles', 'description', 'style']
 
   if (!isPublic) {
     fields = [...fields, 'email']

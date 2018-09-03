@@ -2,10 +2,17 @@ const mongoose = require('mongoose')
 const validator = require('validator')
 
 module.exports = new mongoose.Schema({
-  name: {
+  username: {
     type: String,
     trim: true,
     require: true,
+    unique: true,
+    minlength: 3
+  },
+  name: {
+    type: String,
+    trim: true,
+    require: false,
     minlength: 3
   },
   email: {

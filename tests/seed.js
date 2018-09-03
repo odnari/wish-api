@@ -13,6 +13,7 @@ const users = [
     email: 'andrew@example.com',
     password: 'userOnePass',
     name: 'userone',
+    username: 'userone',
     tokens: [
       {
         access: 'auth',
@@ -27,6 +28,7 @@ const users = [
     email: 'jen@example.com',
     password: 'userTwoPass',
     name: 'usertwo',
+    username: 'usertwo',
     tokens: [{
       access: 'auth',
       token: jwt.sign({_id: userTwoId, access: 'auth'}, process.env.SECRET).toString()

@@ -77,7 +77,7 @@ describe('users', () => {
     const mockUser = {
       email: 'example1@example.com',
       password: '123mnb!',
-      name: 'Test user'
+      username: 'Test user'
     }
 
     test('should create a user', (done) => {
@@ -109,7 +109,7 @@ describe('users', () => {
     test('should return validation errors', (done) => {
       request(app)
         .post(urlPrefix)
-        .send({email: 'inv', password: 'inv', name: 'Test'})
+        .send({email: 'inv', password: 'inv', username: 'Test'})
         .expect(200)
         .expect((res) => {
           expect(res.body.status).toBe(422)
@@ -133,7 +133,7 @@ describe('users', () => {
     test('should not create user with existing email', (done) => {
       request(app)
         .post(urlPrefix)
-        .send({email: users[0].email, password: users[0].password, name: 'Test'})
+        .send({email: users[0].email, password: users[0].password, username: 'Test'})
         .expect(200)
         .expect((res) => {
           expect(res.body.status).toBe(400)
@@ -206,24 +206,13 @@ describe('users', () => {
   })
 
   describe('[GET /:id]: get user', () => {
-    test('should return public user profile by id', (done) => {
+    test('should return public user profile by username', (done) => {
       request(app)
-        .get(`${urlPrefix}/${users[0]._id}`)
+        .get(`${urlPrefix}/${users[0].username}`)
         .expect(200)
         .expect((res) => {
           expect(res.body._id).toBe(users[0]._id.toHexString())
-          expect(res.body.name).toBe(users[0].name)
-        })
-        .end((err) => done(err))
-    })
-
-    test('should return error when id is invalid', (done) => {
-      request(app)
-        .get(`${urlPrefix}/69banana`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.status).toBe(422)
-          expect(res.body.error).toBe('Invalid id')
+          expect(res.body.username).toBe(users[0].username)
         })
         .end((err) => done(err))
     })
