@@ -28,7 +28,7 @@ const validateLogin = [
   check('password').isString().isLength({min: 6, max: 128})
 ]
 
-const usernameRegex = /^@?(\w){3,15}$/gm
+const usernameRegex = /^@?(\w){3,15}$/
 
 const usernameValidation = (name) => usernameRegex.test(name)
 
