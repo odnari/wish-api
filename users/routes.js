@@ -3,8 +3,15 @@ const router = express.Router()
 const pick = require('lodash/pick')
 const User = require('./model')
 const {getGoogleUser, getFacebookUser, SOCIALIZATIONS} = require('./social')
-const {validateId, validationErrorsHandler, authenticate, authenticatedOrGuest, upload} = require('../middleware')
 const {validateCreate, validateUpdate, validateGoogle, validateFacebook, validateLogin} = require('./validators')
+const {
+  validateId,
+  validationErrorsHandler,
+  authenticate,
+  authenticatedOrGuest,
+  upload,
+  validateUsername
+} = require('../middleware')
 
 const authenticateAndSendToken = (user, res) => (
   user.authenticate()
@@ -25,8 +32,7 @@ const updateUserStyle = (user, prop, file) => {
   }
 }
 
-router.get('/:username', authenticatedOrGuest, (req, res) => {
-
+router.get('/:username', validateUsername, authenticatedOrGuest, (req, res) => {
   User.findOne({ username: req.params.username })
     .then(user => {
       if (!user) throw new Error('User not found')

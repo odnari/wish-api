@@ -217,9 +217,20 @@ describe('users', () => {
         .end((err) => done(err))
     })
 
+    test('should return error when username is invalid', (done) => {
+      request(app)
+        .get(`${urlPrefix}/aa`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.status).toBe(422)
+          expect(res.body.error).toBe('Invalid username')
+        })
+        .end((err) => done(err))
+    })
+
     test('should return error when user not found', (done) => {
       request(app)
-        .get(`${urlPrefix}/a${users[0]._id.toHexString().slice(1)}`)
+        .get(`${urlPrefix}/aaaaa`)
         .expect(200)
         .expect((res) => {
           expect(res.body.status).toBe(400)

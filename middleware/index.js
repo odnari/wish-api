@@ -6,5 +6,6 @@ module.exports = {
   cors: require('./cors'),
   upload: require('./upload'),
   validateId: require('./validateId'),
+  validateUsername: require('./validateUsername'),
   validationErrorsHandler: require('./validationErrorsHandler')
 }
