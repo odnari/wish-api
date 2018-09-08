@@ -33,12 +33,12 @@ const updateUserStyle = (user, prop, file) => {
 }
 
 router.get('/:username', validateUsername, authenticatedOrGuest, (req, res) => {
-  User.findOne({ username: req.params.username })
-    .cache(process.env.CACHE_USER_TIME, `u-${req.params.username}`)
-    .then(user => {
-      if (!user) throw new Error('User not found')
+  User.find({ username: req.params.username })
+    .cache(+process.env.CACHE_USER_TIME, `u-${req.params.username}`)
+    .then(users => {
+      if (!users || !users.length) throw new Error('User not found')
 
-      res.send(user.toJSON(true))
+      res.send(users[0].toJSON(true))
     })
     .catch(error => res.send({status: 400, error: error.message}))
 })

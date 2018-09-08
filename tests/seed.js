@@ -5,8 +5,8 @@ const bcrypt = require('bcryptjs')
 const User = require('./../users/model')
 const Wish = require('./../wishes/model')
 
-const userOneId = new ObjectID()
-const userTwoId = new ObjectID()
+const userOneId = new ObjectID('5b93c80afdba55d3beeec658')
+const userTwoId = new ObjectID('5b93c7eb750c82d3b30025be')
 const users = [
   {
     _id: userOneId,
