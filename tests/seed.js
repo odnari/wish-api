@@ -90,10 +90,9 @@ const seedUser = (seed) => {
 
 const populateUsers = (done) => {
   User.deleteMany({}).then(() => {
-    const userOne = seedUser(users[0])
-    const userTwo = seedUser(users[1])
-
-    return Promise.all([userOne, userTwo])
+    return Promise.all(users.map(u => {
+      return seedUser(u)
+    }))
   }).then(() => done())
 }
 
