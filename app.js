@@ -2,7 +2,6 @@ require('dotenv').config()
 
 const express = require('express')
 const bodyParser = require('body-parser')
-const path = require('path')
 
 require('./db/mongoose')
 const cors = require('./middleware/cors')

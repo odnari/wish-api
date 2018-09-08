@@ -50,7 +50,9 @@ router.get('/user/:id', validateId, authenticatedOrGuest, (req, res) => {
 
   Wish
     .find({ _creator: userId, deleted: false }, defaults.listVisibleFields)
+    .lean()
     .sort({createdAt: -1})
+    .cache(process.env.CACHE_WISH_TIME, `wu-${req.params.id}`)
     .then(notes => {
       if (!notes) return res.send({ status: 404, error: 'Not found' })
 
