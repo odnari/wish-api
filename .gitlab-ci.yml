@@ -22,9 +22,9 @@ upload:
    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
    - chmod 644 ~/.ssh/known_hosts
  script:
-   - ssh $CI_USER@$SERVER_IP sudo systemctl stop wish_api
+   - ssh $CI_USER@$SERVER_IP sudo systemctl stop wish_api --user
    - rm -rf .git
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; find -maxdepth 1 ! -name .env ! -name . -exec rm -rf {} \;"
    - scp -rC ./ $CI_USER@$SERVER_IP:$HOST_PATH/
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; yarn"
-   - ssh $CI_USER@$SERVER_IP sudo systemctl start wish_api
+   - ssh $CI_USER@$SERVER_IP sudo systemctl start wish_api --user
