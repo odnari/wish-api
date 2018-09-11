@@ -19,10 +19,14 @@ const verifyGoogleUser = (token) => (
 const getGoogleUser = (token) => (
   verifyGoogleUser(token)
     .then(payload => {
+      const nameMatch = payload['email'].match(/^([^@]*)@/)
+      const username = nameMatch ? nameMatch[1] : `u${token.slice(8, 32)}`
+
       return ({
         email: payload['email'],
         verified: payload['email_verified'],
         name: payload['name'],
+        username: username,
         password: token.slice(0, 16),
         social: {
           google: payload['sub']
