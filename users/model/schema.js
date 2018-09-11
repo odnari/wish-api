@@ -12,8 +12,7 @@ module.exports = new mongoose.Schema({
   name: {
     type: String,
     trim: true,
-    require: false,
-    minlength: 3
+    require: false
   },
   email: {
     type: String,
