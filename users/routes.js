@@ -83,9 +83,9 @@ router.post('/:id/background', validateId, authenticate, upload.single('backgrou
 })
 
 router.post('/', validateCreate, validationErrorsHandler, (req, res) => {
-  const {email, password, name} = req.body
+  const {email, password, username} = req.body
   User.saltPassword(password)
-    .then(salted => new User({email, password: salted, name}))
+    .then(salted => new User({email, password: salted, username}))
     .then(user => user.save().then(() => user))
     .then(user => user.requestVerification().then(() => user))
     .then(user => authenticateAndSendToken(user, res))
