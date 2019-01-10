@@ -22,9 +22,8 @@ upload:
    - echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
    - chmod 644 ~/.ssh/known_hosts
  script:
-   - ssh $CI_USER@$SERVER_IP pm2 stop server
    - rm -rf .git
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; find -maxdepth 1 ! -name .env ! -name . -exec rm -rf {} \;"
    - scp -rC ./ $CI_USER@$SERVER_IP:$HOST_PATH/
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; yarn"
-   - ssh $CI_USER@$SERVER_IP pm2 start server
+   - ssh $CI_USER@$SERVER_IP pm2 restart server
