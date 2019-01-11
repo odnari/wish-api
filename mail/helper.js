@@ -6,8 +6,6 @@ const baseMessage = {
 }
 
 const sendEmailVerificationMail = (to, { token }) => {
-  return
-
   const message = Object.assign({}, baseMessage, {
     to,
     subject: `${process.env.APP_NAME}: E-mail verification`,
