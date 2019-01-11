@@ -1,4 +1,4 @@
-const {mailer} = require('./mail/mailer')
+// const {mailer} = require('./mail/mailer')
 const app = require('./app')
 
 app.listen(process.env.PORT, (err) => {
@@ -9,12 +9,12 @@ app.listen(process.env.PORT, (err) => {
   }
 })
 
-if (process.env.NODE_ENV !== 'test') {
-  mailer.verify((err) => {
-    if (err) {
-      console.error('[mailer] ' + err.message)
-    } else {
-      console.info('[mailer] server is ready')
-    }
-  })
-}
+// if (process.env.NODE_ENV !== 'test') {
+//   mailer.verify((err) => {
+//     if (err) {
+//       console.error('[mailer] ' + err.message)
+//     } else {
+//       console.info('[mailer] server is ready')
+//     }
+//   })
+// }
