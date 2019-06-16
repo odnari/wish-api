@@ -12,8 +12,8 @@ const sendEmailVerificationMail = (to, { token }) => {
     template: 'email_verification',
     context: {
       appName: process.env.APP_NAME,
-      homepage_url: `${process.env.BASE_URL}:${process.env.PORT}/`,
-      verify_token_url: `${process.env.BASE_URL}:${process.env.PORT}/api/users/verify/${token}`
+      homepage_url: `${process.env.BASE_URL}/`,
+      verify_token_url: `${process.env.BASE_URL}/api/users/verify/${token}`
     }
   })
 
