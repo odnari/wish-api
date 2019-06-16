@@ -2,8 +2,8 @@ const express = require('express')
 const router = express.Router()
 const pick = require('lodash/pick')
 const User = require('./model')
-const {getGoogleUser, getFacebookUser, SOCIALIZATIONS} = require('./social')
-const {validateCreate, validateUpdate, validateGoogle, validateFacebook, validateLogin} = require('./validators')
+const { getGoogleUser, getFacebookUser, SOCIALIZATIONS } = require('./social')
+const { validateCreate, validateUpdate, validateGoogle, validateFacebook, validateLogin } = require('./validators')
 const {
   validateId,
   validationErrorsHandler,
@@ -40,7 +40,7 @@ router.get('/:username', validateUsername, authenticatedOrGuest, (req, res) => {
 
       res.send(users[0].toJSON(true))
     })
-    .catch(error => res.send({status: 400, error: error.message}))
+    .catch(error => res.send({ status: 400, error: error.message }))
 })
 
 router.patch('/:id', validateId, authenticate, validateUpdate, validationErrorsHandler, (req, res) => {
@@ -53,10 +53,10 @@ router.patch('/:id', validateId, authenticate, validateUpdate, validationErrorsH
   })
 
   if (req.user._id.toHexString() !== req.params.id) {
-    return res.send({status: 403, error: 'No access'})
+    return res.send({ status: 403, error: 'No access' })
   }
 
-  User.findByIdAndUpdate(req.params.id, {$set: body}, { new: true })
+  User.findByIdAndUpdate(req.params.id, { $set: body }, { new: true })
     .then(user => {
       if (body.password) {
         // todo: salt before saving (what if db will shutdown after save and before salt?)
@@ -83,42 +83,42 @@ router.post('/:id/background', validateId, authenticate, upload.single('backgrou
 })
 
 router.post('/', validateCreate, validationErrorsHandler, (req, res) => {
-  const {email, password, username} = req.body
+  const { email, password, username } = req.body
   User.saltPassword(password)
-    .then(salted => new User({email, password: salted, username}))
+    .then(salted => new User({ email, password: salted, username }))
     .then(user => user.save().then(() => user))
     .then(user => user.requestVerification().then(() => user))
     .then(user => authenticateAndSendToken(user, res))
-    .catch(error => res.send({status: 400, error: error.message}))
+    .catch(error => res.send({ status: 400, error: error.message }))
 })
 
 // tested
 router.post('/google', validateGoogle, validationErrorsHandler, (req, res) => {
-  const {token} = req.body
+  const { token } = req.body
 
   getGoogleUser(token)
     .then(userInfo => User.socialize(userInfo, SOCIALIZATIONS.google))
     .then(user => createAndLoginUser(user, res))
-    .catch(error => res.send({status: 400, error: error.message}))
+    .catch(error => res.send({ status: 400, error: error.message }))
 })
 
 // tested
 router.post('/facebook', validateFacebook, validationErrorsHandler, (req, res) => {
-  const {accessToken: token} = req.body
+  const { accessToken: token } = req.body
 
   getFacebookUser(token)
     .then(userInfo => User.socialize(userInfo, SOCIALIZATIONS.facebook))
     .then(user => createAndLoginUser(user, res))
-    .catch(error => res.send({status: 400, error: error.message}))
+    .catch(error => res.send({ status: 400, error: error.message }))
 })
 
 // tested
 router.post('/login', validateLogin, validationErrorsHandler, (req, res) => {
-  const {email, password} = req.body
+  const { email, password } = req.body
 
   User.findByCreds(email, password)
     .then(user => authenticateAndSendToken(user, res))
-    .catch(error => res.send({status: 400, error: error.message}))
+    .catch(error => res.send({ status: 400, error: error.message }))
 })
 
 // tested
@@ -131,8 +131,8 @@ router.post('/logout', authenticate, (req, res) => {
 // tested
 router.post('/me/verify', authenticate, (req, res) => {
   req.user.requestVerification()
-    .then(() => res.send({status: 200}))
-    .catch(error => res.send({status: 400, error: error.message}))
+    .then(() => res.send({ status: 200 }))
+    .catch(error => res.send({ status: 400, error: error.message }))
 })
 
 // tested
@@ -140,8 +140,8 @@ router.get('/verify/:token', (req, res) => {
   const token = req.params.token
 
   User.verifyByToken(token)
-    .then(user => authenticateAndSendToken(user, res))
-    .catch(error => res.send({status: 403, error}))
+    .then(() => res.redirect(process.env.CLIENT_URL))
+    .catch(error => res.send({ status: 403, error }))
 })
 
 module.exports = {
