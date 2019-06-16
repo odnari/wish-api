@@ -140,7 +140,7 @@ router.get('/verify/:token', (req, res) => {
   const token = req.params.token
 
   User.verifyByToken(token)
-    .then(() => res.redirect(process.env.CLIENT_URL))
+    .then(() => res.redirect(302, process.env.CLIENT_URL))
     .catch(error => res.send({ status: 403, error }))
 })
 
