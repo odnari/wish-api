@@ -17,7 +17,7 @@ const sendEmailVerificationMail = (to, { token }) => {
     }
   })
 
-  return mailer.sendMail(message)
+  //return mailer.sendMail(message)
 }
 
 module.exports = {
