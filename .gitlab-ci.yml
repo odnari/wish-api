@@ -24,6 +24,6 @@ upload:
  script:
    - rm -rf .git
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; find -maxdepth 1 ! -name .env ! -name . -exec rm -rf {} \;"
-   - scp -rC ./ $CI_USER@$SERVER_IP:$HOST_PATH/
+   - scp -rC "$(pwd)/*" $CI_USER@$SERVER_IP:$HOST_PATH/
    - ssh -t $CI_USER@$SERVER_IP "cd $HOST_PATH; yarn"
    - ssh $CI_USER@$SERVER_IP pm2 restart server
