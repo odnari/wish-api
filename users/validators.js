@@ -28,9 +28,11 @@ const validateLogin = [
   check('password').isString().isLength({min: 6, max: 128})
 ]
 
-const usernameRegex = /^(?=.{2,120}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?![_.])$/gm
+const usernameValidation = (name) => {
+  const usernameRegex = /^(?=.{2,120}$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?![_.])$/gm
 
-const usernameValidation = (name) => usernameRegex.test(name)
+  return usernameRegex.test(name)
+}
 
 module.exports = {
   validateUpdate,
